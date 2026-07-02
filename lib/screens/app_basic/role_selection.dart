@@ -36,7 +36,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       icon: Icons.shopping_bag,
                       color: AppTheme.primaryColor,
                       onTap: () {
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
@@ -54,7 +54,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       icon: Icons.restaurant,
                       color: AppTheme.accentColor,
                       onTap: () {
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
@@ -73,7 +73,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       icon: Icons.delivery_dining,
                       color: Colors.blue,
                       onTap: () {
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
