@@ -91,10 +91,10 @@ class AppTheme {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       hintStyle: const TextStyle(color: textLight, fontSize: 14),
     ),
-    cardTheme: CardTheme(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      color: Colors.white,
-    ),
+    // cardTheme: CardTheme(
+    //   elevation: 0,
+    //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    //   color: Colors.white,
+    // ),
   );
 }

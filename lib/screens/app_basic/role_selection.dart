@@ -59,7 +59,7 @@ class RoleSelectionScreen extends StatelessWidget {
                           MaterialPageRoute(
                             builder:
                                 (_) => const LoginOptionsScreen(
-                                  role: 'restaurant',
+                                  role: 'restaurant_owner',
                                 ),
                           ),
                         );

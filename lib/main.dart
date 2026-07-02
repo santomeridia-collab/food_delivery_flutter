@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:food_delivery/screens/app_basic/controller/login_controller.dart';
+import 'package:food_delivery/screens/app_basic/controller/reg_controller.dart';
 import 'package:food_delivery/screens/customer/providers/cart_provider.dart';
 import 'package:food_delivery/screens/customer/providers/chat_provider.dart';
 import 'package:food_delivery/screens/customer/providers/notification_provider.dart';
@@ -21,7 +23,7 @@ import 'screens/app_basic/splash_screen.dart';
 import 'screens/customer/utils/app_theme.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(const MyApp());
@@ -39,6 +41,10 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return MultiProvider(
           providers: [
+            ///// app basic providers /////
+            ChangeNotifierProvider(create: (_) => RegisterController()),
+            ChangeNotifierProvider(create: (_) => LoginController()),
+
             //// customer providers////
             ChangeNotifierProvider(create: (_) => AddressProvider()),
             ChangeNotifierProvider(create: (_) => SearchProvider()),

@@ -1,11 +1,14 @@
 // lib/screens/password_login_screen.dart
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
+import 'package:food_delivery/screens/app_basic/controller/login_controller.dart';
 import 'package:food_delivery/screens/customer/customer_home.dart';
 import 'package:food_delivery/screens/app_basic/forgot_password.dart';
 import 'package:food_delivery/screens/app_basic/reg.dart';
 import 'package:food_delivery/screens/customer/utils/app_theme.dart';
 import 'package:food_delivery/screens/delivery_partener/delivery_dashboard_screen.dart';
 import 'package:food_delivery/screens/restaurant_owner/restaurant_dashboard_screen.dart';
+import 'package:provider/provider.dart';
 
 class PasswordLoginScreen extends StatefulWidget {
   final String role;
@@ -23,6 +26,7 @@ class _PasswordLoginScreenState extends State<PasswordLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = Provider.of<LoginController>(context);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -117,12 +121,20 @@ class _PasswordLoginScreenState extends State<PasswordLoginScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _handleLogin();
-                      }
-                    },
-                    child: const Text('Sign In'),
+                    onPressed:
+                        controller.isLoading
+                            ? null
+                            : () {
+                              if (_formKey.currentState!.validate()) {
+                                _handleLogin();
+                              }
+                            },
+                    child:
+                        controller.isLoading
+                            ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                            : const Text('Sign In'),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -157,11 +169,39 @@ class _PasswordLoginScreenState extends State<PasswordLoginScreen> {
     );
   }
 
-  void _handleLogin() {
+  void _handleLogin() async {
+    final controller = Provider.of<LoginController>(context, listen: false);
+
+    await controller.login(
+      identifier: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      role: widget.role,
+    );
+
+    if (!mounted) return;
+
+    if (controller.loginResponse != null && controller.loginResponse!.success) {
+      _showSuccess("Login successful");
+
+      // small delay for UX
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      _navigateToHome();
+    } else {
+      _showError(controller.errorMessage ?? "Login failed");
+    }
+  }
+
+  void _showSuccess(String message) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Login successful!')));
-    _navigateToHome();
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _navigateToHome() {
@@ -172,12 +212,14 @@ class _PasswordLoginScreenState extends State<PasswordLoginScreen> {
           MaterialPageRoute(builder: (_) => const CustomerHomeScreen()),
         );
         break;
-      case 'restaurant':
+
+      case 'restaurant_owner': // ✅ FIXED
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const RestaurantDashboardScreen()),
         );
         break;
+
       case 'delivery':
         Navigator.pushReplacement(
           context,
