@@ -50,8 +50,8 @@ dependencies:
   image_picker: ^1.2.1
   url_launcher: ^6.3.2
   dio: ^5.9.2
-  awesome_snackbar_content: ^0.1.1
-  flutter_svg: ^1.1.6
+  awesome_snackbar_content: ^0.1.8
+  flutter_svg: ^2.3.0
   shared_preferences: ^2.5.3
 
 dev_dependencies:
@@ -78,7 +78,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
-    - packages/awesome_snackbar_content/assets/
+    # - packages/awesome_snackbar_content/assets/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
