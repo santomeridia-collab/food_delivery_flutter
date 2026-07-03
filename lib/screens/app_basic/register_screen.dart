@@ -1,6 +1,6 @@
 // lib/screens/register_screen.dart
 import 'package:flutter/material.dart';
-import 'package:food_delivery/screens/app_basic/controller/reg_controller.dart';
+import 'package:food_delivery/screens/app_basic/controller/register_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
@@ -160,8 +160,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty)
                     return 'Please enter password';
-                  if (value.length < 6)
-                    return 'Password must be at least 6 characters';
+                  if (value.length < 8)
+                    return 'Password must be at least 8 characters';
                   return null;
                 },
               ),

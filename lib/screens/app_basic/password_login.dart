@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:food_delivery/screens/app_basic/controller/login_controller.dart';
 import 'package:food_delivery/screens/customer/customer_home.dart';
 import 'package:food_delivery/screens/app_basic/forgot_password.dart';
-import 'package:food_delivery/screens/app_basic/reg.dart';
+import 'package:food_delivery/screens/app_basic/register_screen.dart';
 import 'package:food_delivery/screens/customer/utils/app_theme.dart';
 import 'package:food_delivery/screens/delivery_partener/delivery_dashboard_screen.dart';
 import 'package:food_delivery/screens/restaurant_owner/restaurant_dashboard_screen.dart';
