@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:food_delivery/screens/app_basic/model/reg_model.dart';
-import 'package:food_delivery/screens/app_basic/service/reg_Service.dart';
+import 'package:food_delivery/screens/app_basic/model/register_model.dart';
+import 'package:food_delivery/screens/app_basic/service/register_service.dart';
 
 class RegisterController with ChangeNotifier {
   final RegisterService _service = RegisterService();

@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:dio/dio.dart';
-import '../model/login_model.dart';
+import 'package:food_delivery/api/api_costants.dart';
+import 'package:food_delivery/screens/app_basic/model/login_model.dart';
 
 class LoginService {
   final Dio dio = Dio();
@@ -11,8 +12,8 @@ class LoginService {
     required String role,
   }) async {
     try {
-      final url =
-          'https://food-delievery-backend-frdj.onrender.com/api/auth/login/password';
+      const baseUrl = ApiConstants.baseUrl;
+      final url = "$baseUrl/api/auth/login/password";
 
       final body = {
         "identifier": identifier,
@@ -20,6 +21,7 @@ class LoginService {
         "role": role,
       };
 
+      log("BASE_API_URL = $baseUrl");
       log("🚀 LOGIN API START");
       log("📤 BODY: $body");
 

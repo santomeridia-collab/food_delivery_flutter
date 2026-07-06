@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:food_delivery/screens/app_basic/otp_screen.dart';
 import 'package:food_delivery/screens/app_basic/password_login.dart';
-import 'package:food_delivery/screens/app_basic/reg.dart';
+import 'package:food_delivery/screens/app_basic/register_screen.dart';
 import 'package:food_delivery/screens/customer/utils/app_theme.dart';
 
 class LoginOptionsScreen extends StatelessWidget {

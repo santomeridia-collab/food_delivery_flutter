@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:dio/dio.dart';
-import 'package:food_delivery/screens/app_basic/model/reg_model.dart';
+import 'package:food_delivery/api/api_costants.dart';
+import 'package:food_delivery/screens/app_basic/model/register_model.dart';
 
 class RegisterService {
   final Dio dio =
@@ -25,8 +26,8 @@ class RegisterService {
     required String role,
   }) async {
     try {
-      final url =
-          'https://food-delievery-backend-frdj.onrender.com/api/auth/register';
+      const baseUrl = ApiConstants.baseUrl;
+      final url = "$baseUrl/api/auth/register";
 
       final body = {
         "name": name,
