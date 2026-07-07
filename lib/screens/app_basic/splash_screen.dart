@@ -1,7 +1,12 @@
 // lib/screens/splash_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:food_delivery/screens/app_basic/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:food_delivery/screens/app_basic/app_intro.dart';
+import 'package:food_delivery/screens/customer/customer_home.dart';
+import 'package:food_delivery/screens/delivery_partener/delivery_dashboard_screen.dart';
+import 'package:food_delivery/screens/restaurant_owner/restaurant_dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -32,17 +37,73 @@ class _SplashScreenState extends State<SplashScreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
     _controller.forward();
-    _navigateToNext();
+    _checkLoginStatus();
   }
 
-  void _navigateToNext() async {
+  Future<void> _checkLoginStatus() async {
+    // Wait for splash screen animation
     await Future.delayed(const Duration(seconds: 3));
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const AppIntroScreen()),
-      );
+    
+    if (!mounted) return;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final accessToken = prefs.getString('accessToken');
+      final refreshToken = prefs.getString('refreshToken');
+      final role = prefs.getString('role') ?? '';
+
+      // Check if tokens exist
+      if (accessToken != null && 
+          refreshToken != null && 
+          accessToken.isNotEmpty && 
+          refreshToken.isNotEmpty) {
+        
+        // Token exists - navigate to appropriate dashboard based on role
+        _navigateToDashboard(role);
+      } else {
+        // No token - navigate to intro screen
+        _navigateToIntro();
+      }
+    } catch (e) {
+      debugPrint('❌ Error checking login status: $e');
+      // On error, navigate to intro screen
+      _navigateToIntro();
     }
+  }
+
+  void _navigateToDashboard(String role) {
+    if (!mounted) return;
+
+    Widget destinationScreen;
+    switch (role.toLowerCase()) {
+      case 'customer':
+        destinationScreen = const CustomerHomeScreen();
+        break;
+      case 'restaurant':
+        destinationScreen = const RestaurantDashboardScreen();
+        break;
+      case 'delivery':
+        destinationScreen = const DeliveryDashboardScreen();
+        break;
+      default:
+        // If role is invalid, go to login options
+        destinationScreen = const LoginOptionsScreen(role: 'customer');
+        break;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => destinationScreen),
+    );
+  }
+
+  void _navigateToIntro() {
+    if (!mounted) return;
+    
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const AppIntroScreen()),
+    );
   }
 
   @override
@@ -99,6 +160,16 @@ class _SplashScreenState extends State<SplashScreen>
                     const Text(
                       'Delivering Happiness',
                       style: TextStyle(fontSize: 16, color: Colors.white70),
+                    ),
+                    const SizedBox(height: 30),
+                    // Loading indicator
+                    const SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
                     ),
                   ],
                 ),

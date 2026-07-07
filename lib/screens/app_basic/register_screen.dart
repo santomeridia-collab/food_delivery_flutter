@@ -22,34 +22,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _obscurePassword = true;
 
-  void showSuccess(String message) {
-    final snackBar = SnackBar(
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      behavior: SnackBarBehavior.floating,
-      content: AwesomeSnackbarContent(
-        title: 'Success',
-        message: message,
-        contentType: ContentType.success,
-      ),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  void showError(String message) {
-    final snackBar = SnackBar(
-      elevation: 0,
-      backgroundColor: Colors.transparent,
-      behavior: SnackBarBehavior.floating,
-      content: AwesomeSnackbarContent(
-        title: 'Error',
-        message: message,
-        contentType: ContentType.failure,
-      ),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
   @override
   Widget build(BuildContext context) {
     final controller = Provider.of<RegisterController>(context);
@@ -76,7 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Sign up to get started with FoodieDash',
+                'Sign up to get started',
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 48),
@@ -88,12 +60,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   prefixIcon: Icon(Icons.person),
                   hintText: 'Enter full name',
                   labelText: 'Full Name',
+                  border: OutlineInputBorder(),
                 ),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Please enter your name'
-                            : null,
+                validator: (value) =>
+                    value == null || value.isEmpty
+                        ? 'Please enter your name'
+                        : null,
               ),
 
               const SizedBox(height: 16),
@@ -106,6 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   prefixIcon: Icon(Icons.email),
                   hintText: 'Enter email address',
                   labelText: 'Email',
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty)
@@ -125,6 +98,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   prefixIcon: Icon(Icons.phone),
                   hintText: 'Enter phone number',
                   labelText: 'Phone Number',
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty)
@@ -144,6 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   prefixIcon: const Icon(Icons.lock),
                   hintText: 'Enter password',
                   labelText: 'Password',
+                  border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -172,37 +147,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed:
-                      controller.isLoading
-                          ? null
-                          : () async {
-                            if (_formKey.currentState!.validate()) {
-                              await controller.register(
-                                name: _nameController.text.trim(),
-                                email: _emailController.text.trim(),
-                                phone: _phoneController.text.trim(),
-                                password: _passwordController.text.trim(),
-                                role: widget.role,
+                  onPressed: controller.isLoading
+                      ? null
+                      : () async {
+                          if (_formKey.currentState!.validate()) {
+                            await controller.register(
+                              name: _nameController.text.trim(),
+                              email: _emailController.text.trim(),
+                              phone: _phoneController.text.trim(),
+                              password: _passwordController.text.trim(),
+                              role: widget.role,
+                            );
+
+                            // Check registration response
+                            if (controller.registerResponse != null &&
+                                controller.registerResponse!.success) {
+                              // Show success message
+                              final snackBar = SnackBar(
+                                elevation: 0,
+                                backgroundColor: Colors.transparent,
+                                behavior: SnackBarBehavior.floating,
+                                content: AwesomeSnackbarContent(
+                                  title: 'Success',
+                                  message: controller.registerResponse!.message,
+                                  contentType: ContentType.success,
+                                ),
                               );
+                              ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
-                              if (controller.registerResponse != null &&
-                                  controller.registerResponse!.success) {
-                                showSuccess(
-                                  controller.registerResponse!.message,
-                                );
-
-                                Future.delayed(const Duration(seconds: 1), () {
-                                  Navigator.pop(context);
-                                });
-                              } else {
-                                showError("Registration failed. Try again.");
-                              }
+                              // Navigate back after delay
+                              Future.delayed(const Duration(seconds: 2), () {
+                                Navigator.pop(context);
+                              });
+                            } else {
+                              // Show error message
+                              final snackBar = SnackBar(
+                                elevation: 0,
+                                backgroundColor: Colors.transparent,
+                                behavior: SnackBarBehavior.floating,
+                                content: AwesomeSnackbarContent(
+                                  title: 'Error',
+                                  message: controller.registerResponse?.message ??
+                                      'Registration failed. Try again.',
+                                  contentType: ContentType.failure,
+                                ),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(snackBar);
                             }
-                          },
-                  child:
-                      controller.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Sign Up'),
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.orange,
+                  ),
+                  child: controller.isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Sign Up',
+                          style: TextStyle(fontSize: 16),
+                        ),
                 ),
               ),
             ],
@@ -210,5 +213,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

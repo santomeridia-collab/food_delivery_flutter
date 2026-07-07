@@ -1,3 +1,4 @@
+// lib/screens/app_basic/controller/login_controller.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/login_model.dart';
@@ -10,7 +11,7 @@ class LoginController with ChangeNotifier {
   LoginResponse? loginResponse;
   String? errorMessage;
 
-  Future<void> login({
+  Future<bool> login({
     required String identifier,
     required String password,
     required String role,
@@ -29,26 +30,41 @@ class LoginController with ChangeNotifier {
       if (response != null && response.success) {
         loginResponse = response;
 
-        /// ✅ SAFE STORAGE
+        // Save tokens
         try {
           final prefs = await SharedPreferences.getInstance();
-
           await prefs.setString("accessToken", response.data.accessToken);
           await prefs.setString("refreshToken", response.data.refreshToken);
           await prefs.setString("role", role);
+          await prefs.setString("identifier", identifier);
+          
+          debugPrint("✅ Tokens saved successfully");
         } catch (e) {
           debugPrint("❌ SharedPreferences Error: $e");
         }
+
+        isLoading = false;
+        notifyListeners();
+        return true;
       } else {
         errorMessage = response?.message ?? "Invalid credentials";
+        isLoading = false;
+        notifyListeners();
+        return false;
       }
     } catch (e) {
-      errorMessage = "Something went wrong";
+      errorMessage = "Something went wrong: $e";
       debugPrint("❌ Login Error: $e");
+      isLoading = false;
+      notifyListeners();
+      return false;
     }
+  }
 
-    /// ✅ ALWAYS STOP LOADING (VERY IMPORTANT)
+  void reset() {
     isLoading = false;
+    loginResponse = null;
+    errorMessage = null;
     notifyListeners();
   }
 }

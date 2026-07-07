@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:food_delivery/screens/app_basic/controller/logout_controller.dart';
+import 'package:food_delivery/screens/app_basic/login_screen.dart';
 import 'package:food_delivery/screens/customer/notification_screen.dart';
 import 'package:food_delivery/screens/customer/providers/user_provider.dart';
 import 'package:food_delivery/screens/customer/utils/app_theme.dart';
@@ -17,6 +19,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final user = userProvider.currentUser;
+    final logoutController = Provider.of<LogoutController>(context);
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -278,12 +281,22 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const Divider(height: 0, indent: 56),
                   ProfileMenuItem(
-                    icon: Icons.logout,
-                    title: 'Logout',
-                    onTap: () => _showLogoutDialog(context),
-                    textColor: Colors.red,
-                    iconColor: Colors.red,
-                  ),
+  icon: Icons.logout,
+  title: logoutController.isLoading ? 'Logging out...' : 'Logout',
+  onTap: logoutController.isLoading ? () {} : () => _showLogoutDialog(context),
+  textColor: Colors.red,
+  iconColor: Colors.red,
+  trailing: logoutController.isLoading
+      ? const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.red,
+          ),
+        )
+      : null,
+),
                 ],
               ),
             ),
@@ -326,30 +339,104 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final logoutController = Provider.of<LogoutController>(context, listen: false);
+    
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Logout'),
-            content: const Text('Are you sure you want to logout?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  // Navigator.pushAndRemoveUntil(
-                  //   context,
-                  //   MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  //   (route) => false,
-                  // );
-                },
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Logout'),
-              ),
-            ],
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
+          Consumer<LogoutController>(
+            builder: (context, controller, _) {
+              return TextButton(
+                onPressed: controller.isLoading
+                    ? null
+                    : () async {
+                        // Perform logout
+                        final success = await controller.performLogout();
+
+                        // Close dialog
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                        }
+
+                        if (success) {
+                          // Show success message
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Logged out successfully'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+
+                          // Navigate to login options screen
+                          if (context.mounted) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginOptionsScreen(
+                                  role: 'customer',
+                                ),
+                              ),
+                              (route) => false,
+                            );
+                          }
+                        } else {
+                          // Show error message
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  controller.errorMessage ??
+                                      'Logout failed. Please try again.',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                          
+                          // Even if API fails, navigate to login
+                          if (context.mounted) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginOptionsScreen(
+                                  role: 'customer',
+                                ),
+                              ),
+                              (route) => false,
+                            );
+                          }
+                        }
+                      },
+                child: controller.isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Logout',
+                        style: TextStyle(color: Colors.red),
+                      ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
