@@ -1,15 +1,14 @@
 import 'dart:developer';
 
-enum Level {
-  FINE(500),
-  INFO(800),
+enum LogLevel {
+  INFO(500),
+  FINE(800),
   WARNING(900),
-  ERROR(1000),
-  FATAL(2000);
+  ERROR(1000);
 
   final int value;
 
-  const Level(this.value);
+  const LogLevel(this.value);
 }
 
 class Logger {
@@ -19,42 +18,57 @@ class Logger {
     _appName = name;
   }
 
-  void ok(String msg) {
+  String _timestamp() {
+    final now = DateTime.now();
+
+    final hour = now.hour % 12 == 0 ? 12 : now.hour % 12;
+    final minute = now.minute.toString().padLeft(2, '0');
+    final seconds = now.second.toString().padLeft(2, '0');
+    final period = now.hour >= 12 ? 'PM' : 'AM';
+
+    return '${hour.toString().padLeft(2, '0')}:$minute:$seconds $period';
+  }
+
+  String _getFormattedHeader({String? tag}) {
+    return "[${_timestamp()}] ${tag != null ? "[${tag.toUpperCase()}]" : ""}";
+  }
+
+  void ok(String msg, {String? tag, bool enableStackTrace = false}) {
     log(
-      "🟢: $msg",
+      "${_getFormattedHeader(tag: tag)} 🟢: $msg",
       name: _appName,
-      level: Level.FINE.value,
-      time: DateTime.now(),
+      level: LogLevel.FINE.value,
+      stackTrace: enableStackTrace ? StackTrace.current : null,
       error: "",
     );
   }
 
-  void info(String msg) {
+  void info(String msg, {String? tag, bool enableStackTrace = false}) {
     log(
-      "⚪: $msg",
+      "${_getFormattedHeader(tag: tag)} ⚪: $msg",
       name: _appName,
-      level: Level.INFO.value,
-      time: DateTime.now(),
+      level: LogLevel.INFO.value,
+      stackTrace: enableStackTrace ? StackTrace.current : null,
       error: "",
     );
   }
 
-  void warn(String msg) {
+  void warn(String msg, {String? tag, bool enableStackTrace = true}) {
     log(
-      "🟠: $msg",
+      "${_getFormattedHeader(tag: tag)} 🟠: $msg",
       name: _appName,
-      level: Level.WARNING.value,
-      time: DateTime.now(),
+      level: LogLevel.WARNING.value,
+      stackTrace: enableStackTrace ? StackTrace.current : null,
       error: "",
     );
   }
 
-  void error(String msg) {
+  void error(String msg, {String? tag, bool enableStackTrace = true}) {
     log(
-      "🔴: $msg",
+      "${_getFormattedHeader(tag: tag)} 🔴: $msg",
       name: _appName,
-      level: Level.ERROR.value,
-      time: DateTime.now(),
+      level: LogLevel.ERROR.value,
+      stackTrace: enableStackTrace ? StackTrace.current : null,
       error: "",
     );
   }

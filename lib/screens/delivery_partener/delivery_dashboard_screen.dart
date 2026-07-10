@@ -177,9 +177,12 @@ class _DashboardContent extends StatelessWidget {
                       value: isOnline,
                       onChanged: (value) {
                         deliveryProvider.toggleOnlineStatus(value);
-                        logger.ok("Hmm... this is nice\nFuck this flutter logging bullshit");
-                        logger.warn("Oh shit! this is dangerous\ntest next line\nand next line");
-                        logger.error("This is an error");
+                        logger.ok("This is ok logger\nLevel is FINE");
+                        logger.info("This is info logger\nLevel is INFO");
+                        logger.warn(
+                          "Oh shit! this is dangerous\ntest next line\nand next line",
+                        );
+                        logger.error("This is an error logger");
                       },
                       activeThumbColor: Colors.green,
                     ),
