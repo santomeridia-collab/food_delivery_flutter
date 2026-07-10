@@ -1,6 +1,5 @@
 // lib/screens/app_basic/service/logout_service.dart
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:food_delivery/api/api_costants.dart';
 import 'package:food_delivery/screens/app_basic/model/logout_model.dart';
 import 'package:food_delivery/utils/log.dart';
@@ -29,13 +28,10 @@ class LogoutService {
         userId: userId,
       );
 
-      logger.info("🚀 Logout API Call", tag: "Auth");
-      logger.info("📡 URL: $url", tag: "Auth");
-      logger.info(
-        "📤 Headers: Authorization: Bearer $accessToken",
-        tag: "Auth",
-      );
-      logger.info("📤 Body: ${request.toJson()}", tag: "Auth");
+      logger.info("🚀 Logout API Call");
+      logger.info("📡 URL: $url");
+      logger.info("📤 Headers: Authorization: Bearer $accessToken");
+      logger.info("📤 Body: ${request.toJson()}");
 
       final response = await dio.post(
         url,
@@ -48,8 +44,8 @@ class LogoutService {
         data: request.toJson(),
       );
 
-      logger.info("📥 Response Status: ${response.statusCode}", tag: "Auth");
-      logger.info("📥 Response Data: ${response.data}", tag: "Auth");
+      logger.info("📥 Response Status: ${response.statusCode}");
+      logger.info("📥 Response Data: ${response.data}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return LogoutResponse.fromJson(response.data);

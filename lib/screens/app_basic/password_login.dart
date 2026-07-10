@@ -1,6 +1,5 @@
 // lib/screens/app_basic/password_login.dart
 import 'package:flutter/material.dart';
-import 'package:food_delivery/screens/app_basic/login_screen.dart';
 import 'package:food_delivery/screens/customer/customer_home.dart';
 import 'package:food_delivery/screens/delivery_partener/delivery_dashboard_screen.dart';
 import 'package:food_delivery/screens/restaurant_owner/restaurant_dashboard_screen.dart';

@@ -50,7 +50,7 @@ class LogoutController with ChangeNotifier {
       }
     } catch (e) {
       errorMessage = "An error occurred: $e";
-      logger.error("Logout Controller Error: $e", tag: "Auth");
+      logger.error("Logout Controller Error: $e");
 
       // Clear local data on error
       await _logoutService.clearLocalData();

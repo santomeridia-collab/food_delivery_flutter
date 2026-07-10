@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:food_delivery/api/api_costants.dart';
 import 'package:food_delivery/utils/log.dart';
@@ -29,9 +27,9 @@ class ApiClient {
         },
 
         onError: (DioException e, handler) async {
-          // if (e.requestOptions.extra["SkipRefresh"]) {
-          //   return handler.next(e);
-          // }
+          if (e.requestOptions.extra["SkipRefresh"]) {
+            return handler.next(e);
+          }
 
           // Unauthorized error the token is either expired or invalid
           if (e.response?.statusCode == 401) {
@@ -39,7 +37,6 @@ class ApiClient {
             if (newAccessToken == null || newAccessToken.isEmpty) {
               logger.error(
                 "Couldn't get new access token, redirecting to login",
-                tag: "Error",
               );
               // TODO: redirect user to login page
 
@@ -51,8 +48,7 @@ class ApiClient {
           }
 
           logger.error(
-            "Exception caught in ApiClient Interceptor: ${e.response}",
-            tag: "Error",
+            "Exception caught in ApiClient Interceptor: ${e.toString()}",
           );
         },
       ),
@@ -65,7 +61,7 @@ class ApiClient {
     try {
       final refreshToken = await _prefs.getString("refreshToken");
       if (refreshToken == null || refreshToken.isEmpty) {
-        logger.error("Refresh token not found", tag: "Error");
+        logger.error("Refresh token not found");
         return null;
       }
       final response = await dio.post(

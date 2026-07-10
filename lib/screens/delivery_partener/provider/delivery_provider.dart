@@ -34,7 +34,7 @@ class DeliveryProvider extends ChangeNotifier {
     // ✅ fetch delivery dashboard data and set _isOnline status
     // fetch set all, new and active orders
     // fetch delivery stats
-    _fetchAndLoadDashboardData();
+    // _fetchAndLoadDashboardData();
   }
 
   /// This method fetch's the data dashboard data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
@@ -52,8 +52,7 @@ class DeliveryProvider extends ChangeNotifier {
       // setting DeliveryProvider state
       _isOnline = response.data.data.isOnline;
     } on DioException catch (e) {
-      logger.error("ERROR: fetching dashboard data");
-      logger.error("🔴 STATUS: ${e.toString()}");
+      logger.error("fetching dashboard data, e: $e");
 
       // todo reset login provider and replace the whole navaigtion stack with role selection screen as root
     }
@@ -248,12 +247,9 @@ class DeliveryProvider extends ChangeNotifier {
   }
 
   Future<void> refreshData() async {
-    logger.info(
-      "Refreshing... delivery provider data",
-      tag: "Delivery Dashboard",
-    );
+    logger.info("Refreshing... delivery provider data");
     await _fetchAndLoadDashboardData();
-    logger.info("finished refreshData", tag: "Delivery Dashboard");
+    logger.info("finished refreshData");
 
     notifyListeners();
   }

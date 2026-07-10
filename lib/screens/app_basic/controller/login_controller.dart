@@ -39,9 +39,9 @@ class LoginController with ChangeNotifier {
           await prefs.setString("role", role);
           await prefs.setString("identifier", identifier);
 
-          logger.ok("Tokens saved successfully", tag: "Auth");
+          logger.ok("Tokens saved successfully");
         } catch (e) {
-          logger.error("SharedPreferences Error: $e", tag: "Auth");
+          logger.error("SharedPreferences Error: $e");
         }
 
         isLoading = false;
@@ -55,7 +55,7 @@ class LoginController with ChangeNotifier {
       }
     } catch (e) {
       errorMessage = "Something went wrong: $e";
-      logger.error("Login Error: $e", tag: "Auth");
+      logger.error("Login Error: $e");
       isLoading = false;
       notifyListeners();
       return false;
