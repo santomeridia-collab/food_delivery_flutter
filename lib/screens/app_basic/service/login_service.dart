@@ -1,31 +1,31 @@
 import 'dart:developer';
 import 'package:dio/dio.dart';
-import 'package:food_delivery/api/api_costants.dart';
+import 'package:food_delivery/api/api_client.dart';
 import 'package:food_delivery/screens/app_basic/model/login_model.dart';
 
 class LoginService {
-  final Dio dio = Dio();
-
   Future<LoginResponse?> loginUser({
     required String identifier,
     required String password,
     required String role,
   }) async {
     try {
-      const baseUrl = ApiConstants.baseUrl;
-      final url = "$baseUrl/api/auth/login/password";
-
       final body = {
         "identifier": identifier,
         "password": password,
         "role": role,
       };
 
-      log("BASE_API_URL = $baseUrl");
       log("🚀 LOGIN API START");
       log("📤 BODY: $body");
 
-      final response = await dio.post(url, data: body);
+      final response = await apiClient.dio.post(
+        "/api/auth/login/password",
+        data: body,
+        options: Options(
+          extra: {"RequireAuthInterceptor": false, "SkipRefresh": true},
+        ),
+      );
 
       log("📥 RESPONSE: ${response.data}");
 

@@ -32,12 +32,12 @@ class LoginController with ChangeNotifier {
 
         // Save tokens
         try {
-          final prefs = await SharedPreferences.getInstance();
+          final prefs = SharedPreferencesAsync();
           await prefs.setString("accessToken", response.data.accessToken);
           await prefs.setString("refreshToken", response.data.refreshToken);
           await prefs.setString("role", role);
           await prefs.setString("identifier", identifier);
-          
+
           debugPrint("✅ Tokens saved successfully");
         } catch (e) {
           debugPrint("❌ SharedPreferences Error: $e");

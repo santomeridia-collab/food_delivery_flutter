@@ -43,21 +43,22 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _checkLoginStatus() async {
     // Wait for splash screen animation
     await Future.delayed(const Duration(seconds: 3));
-    
+
     if (!mounted) return;
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final accessToken = prefs.getString('accessToken');
-      final refreshToken = prefs.getString('refreshToken');
-      final role = prefs.getString('role') ?? '';
+      final prefs = SharedPreferencesAsync();
+      final accessToken = await prefs.getString('accessToken');
+      final refreshToken = await prefs.getString('refreshToken');
+      final role = await prefs.getString('role') ?? '';
 
       // Check if tokens exist
-      if (accessToken != null && 
-          refreshToken != null && 
-          accessToken.isNotEmpty && 
+      if (accessToken != null &&
+          refreshToken != null &&
+          accessToken.isNotEmpty &&
           refreshToken.isNotEmpty) {
-        
+        // TODO: validate access token from API
+
         // Token exists - navigate to appropriate dashboard based on role
         _navigateToDashboard(role);
       } else {
@@ -99,7 +100,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _navigateToIntro() {
     if (!mounted) return;
-    
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const AppIntroScreen()),

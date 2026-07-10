@@ -8,21 +8,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LogoutService {
   final Dio dio = Dio();
 
-  Future<LogoutResponse?> logout({
-    String? refreshToken,
-    String? userId,
-  }) async {
+  Future<LogoutResponse?> logout({String? refreshToken, String? userId}) async {
     try {
       // Get access token from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final accessToken = prefs.getString('accessToken');
+      final prefs = SharedPreferencesAsync();
+      final accessToken = await prefs.getString('accessToken');
 
       if (accessToken == null || accessToken.isEmpty) {
         debugPrint('❌ No access token found');
-        return LogoutResponse(
-          success: false,
-          message: 'No access token found',
-        );
+        return LogoutResponse(success: false, message: 'No access token found');
       }
 
       const baseUrl = ApiConstants.baseUrl;
@@ -74,10 +68,7 @@ class LogoutService {
         } catch (_) {}
       }
 
-      return LogoutResponse(
-        success: false,
-        message: errorMessage,
-      );
+      return LogoutResponse(success: false, message: errorMessage);
     } catch (e) {
       debugPrint('❌ Unknown Error: $e');
       return LogoutResponse(
@@ -90,7 +81,7 @@ class LogoutService {
   // Helper method to clear local data
   Future<void> clearLocalData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = SharedPreferencesAsync();
       await prefs.remove('accessToken');
       await prefs.remove('refreshToken');
       await prefs.remove('role');

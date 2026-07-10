@@ -7,6 +7,7 @@ import 'package:food_delivery/screens/delivery_partener/delivery_profile_screen.
 import 'package:food_delivery/screens/delivery_partener/new_orders_screen.dart';
 import 'package:food_delivery/screens/delivery_partener/provider/delivery_provider.dart';
 import 'package:food_delivery/screens/delivery_partener/widget/delivery_stats_card.dart';
+import 'package:food_delivery/utils/log.dart';
 import 'package:provider/provider.dart';
 
 class DeliveryDashboardScreen extends StatefulWidget {
@@ -19,7 +20,6 @@ class DeliveryDashboardScreen extends StatefulWidget {
 
 class _DeliveryDashboardScreenState extends State<DeliveryDashboardScreen> {
   int _selectedIndex = 0;
-  bool _isOnline = true;
 
   final List<Widget> _screens = [
     const _DashboardContent(),
@@ -32,7 +32,6 @@ class _DeliveryDashboardScreenState extends State<DeliveryDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final deliveryProvider = Provider.of<DeliveryProvider>(context);
-    final stats = deliveryProvider.stats;
     final newOrdersCount = deliveryProvider.newOrders.length;
 
     return Scaffold(
@@ -178,8 +177,11 @@ class _DashboardContent extends StatelessWidget {
                       value: isOnline,
                       onChanged: (value) {
                         deliveryProvider.toggleOnlineStatus(value);
+                        logger.ok("Hmm... this is nice\nFuck this flutter logging bullshit");
+                        logger.warn("Oh shit! this is dangerous\ntest next line\nand next line");
+                        logger.error("This is an error");
                       },
-                      activeColor: Colors.green,
+                      activeThumbColor: Colors.green,
                     ),
                   ],
                 ),
@@ -238,7 +240,7 @@ class _DashboardContent extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
@@ -320,7 +322,7 @@ class _DashboardContent extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withValues(alpha: 0.1),
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
@@ -383,7 +385,7 @@ class _DashboardContent extends StatelessWidget {
             width: 40.w,
             height: 40.w,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(icon, color: color, size: 20.sp),
