@@ -17,13 +17,13 @@ class LoginService {
       };
 
       logger.info("🚀 LOGIN API START");
-      logger.info("📤 BODY: $body");
+      logger.info("📤 BODY:\n$body");
 
       final response = await apiClient.dio.post(
         "/api/auth/login/password",
         data: body,
         options: Options(
-          extra: {"RequireAuthInterceptor": false, "SkipRefresh": true},
+          extra: {"RequireAuth": false, "SkipRefresh": true},
         ),
       );
 

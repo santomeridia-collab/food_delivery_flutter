@@ -1,5 +1,6 @@
 // lib/screens/app_basic/service/logout_service.dart
 import 'package:dio/dio.dart';
+import 'package:food_delivery/api/api_client.dart';
 import 'package:food_delivery/api/api_costants.dart';
 import 'package:food_delivery/screens/app_basic/model/logout_model.dart';
 import 'package:food_delivery/utils/log.dart';
@@ -19,9 +20,6 @@ class LogoutService {
         return LogoutResponse(success: false, message: "No access token found");
       }
 
-      const baseUrl = ApiConstants.baseUrl;
-      final url = "$baseUrl/api/auth/logout";
-
       // Prepare request body
       final LogoutRequest request = LogoutRequest(
         refreshToken: refreshToken,
@@ -29,18 +27,12 @@ class LogoutService {
       );
 
       logger.info("🚀 Logout API Call");
-      logger.info("📡 URL: $url");
       logger.info("📤 Headers: Authorization: Bearer $accessToken");
       logger.info("📤 Body: ${request.toJson()}");
 
-      final response = await dio.post(
-        url,
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $accessToken',
-            'Content-Type': 'application/json',
-          },
-        ),
+      final response = await apiClient.dio.post(
+        "/api/auth/logout",
+        options: Options(headers: {'Content-Type': 'application/json'}),
         data: request.toJson(),
       );
 

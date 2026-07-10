@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery/api/api_client.dart';
@@ -34,7 +32,7 @@ class DeliveryProvider extends ChangeNotifier {
     // ✅ fetch delivery dashboard data and set _isOnline status
     // fetch set all, new and active orders
     // fetch delivery stats
-    // _fetchAndLoadDashboardData();
+    _fetchAndLoadDashboardData();
   }
 
   /// This method fetch's the data dashboard data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
@@ -45,16 +43,16 @@ class DeliveryProvider extends ChangeNotifier {
       // fetching data for api
       Response response;
       response = await apiClient.dio.get("/api/delivery/dashboard");
-      logger.ok(
-        "SUCCESSFULLY fetched delivery dashboard data: ${response.data.toString()}",
-      );
+      logger.ok("SUCCESSFULLY fetched delivery dashboard data: $response");
 
       // setting DeliveryProvider state
       _isOnline = response.data.data.isOnline;
-    } on DioException catch (e) {
-      logger.error("fetching dashboard data, e: $e");
 
-      // todo reset login provider and replace the whole navaigtion stack with role selection screen as root
+      notifyListeners();
+    } on DioException catch (e) {
+      logger.error("fetching dashboard data,\ne: ${e.response}");
+
+      // bubble up the error
     }
   }
 

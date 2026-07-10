@@ -13,12 +13,13 @@ class ApiClient {
       InterceptorsWrapper(
         onRequest: (RequestOptions options, handler) async {
           // don't add auth headers if interceptor not required
-          if (!options.extra["RequireAuthInterceptor"]) {
+          final authRequired = options.extra["RequireAuth"] ?? true;
+          if (!authRequired) {
             return handler.next(options);
           }
 
           String? accessToken = await _prefs.getString("accessToken");
-          logger.ok("ACCESS TOKEN: $accessToken");
+          logger.ok("Access Token found attaching:\n $accessToken");
           if (accessToken != null) {
             options.headers["Authorization"] = "Bearer $accessToken";
           }
@@ -27,58 +28,66 @@ class ApiClient {
         },
 
         onError: (DioException e, handler) async {
-          if (e.requestOptions.extra["SkipRefresh"]) {
-            return handler.next(e);
-          }
+          logger.error("Request Failed with following error:\n $e");
 
-          // Unauthorized error the token is either expired or invalid
-          if (e.response?.statusCode == 401) {
-            final String? newAccessToken = await _refreshAccessToken();
-            if (newAccessToken == null || newAccessToken.isEmpty) {
-              logger.error(
-                "Couldn't get new access token, redirecting to login",
-              );
-              // TODO: redirect user to login page
+          // // Unauthorized error the access token is either expired or invalid
+          // if (e.response?.statusCode == HttpStatus.unauthorized) {
+          //   logger.error("Unauthorized access status code, recieved");
+          //   final skipRefresh = e.requestOptions.extra["SkipRefresh"] ?? false;
+          //   if (skipRefresh) {
+          //     logger.info(
+          //       "SkipRefresh enabled, skipping the attemp to get new access token",
+          //     );
+          //     return handler.next(e);
+          //   }
 
-              return;
-            }
+          //   logger.warn(
+          //     "Attempting to refresh expired/invalid accessToken via refreshToken",
+          //   );
+          //   final String? newAccessToken = await _refreshAccessToken();
+          //   if (newAccessToken == null) {
+          //     logger.error("Failed to get new access token");
+          //     return handler.next(e);
+          //   }
 
-            // TODO: add new access token to sharedprefrences
-            _prefs.setString("accessToken", newAccessToken);
-          }
+          //   logger.ok("Succesfully fetched new access token: $newAccessToken");
+          //   _prefs.setString("accessToken", newAccessToken);
+          //   // call retry
+          // }
 
-          logger.error(
-            "Exception caught in ApiClient Interceptor: ${e.toString()}",
-          );
+          return handler.next(e);
         },
       ),
     );
   }
 
+  // ================================ THIS FUNCTION DOESN'T BELONG HERE, MOVE IT TO THE AUTH LAYER ================================
   /// This method uses "refreshToken" from SharedPreferencesAsync (if exists) and  fetches a new accessToken from api and returns it
   /// if refreshToken request fails returns null
-  Future<String?> _refreshAccessToken() async {
-    try {
-      final refreshToken = await _prefs.getString("refreshToken");
-      if (refreshToken == null || refreshToken.isEmpty) {
-        logger.error("Refresh token not found");
-        return null;
-      }
-      final response = await dio.post(
-        "/api/auth/refresh",
-        data: {"refreshToken": refreshToken},
-        options: Options(
-          extra: {"RequireAuthInterceptor": false, "SkipRefresh": true},
-        ),
-      );
-      logger.info("/api/auth/refresh: ${response.data}");
+  // Future<String?> _refreshAccessToken() async {
+  //   try {
+  //     final refreshToken = await _prefs.getString("refreshToken");
+  //     if (refreshToken == null) {
+  //       logger.error("Refresh token not found");
+  //       return null;
+  //     }
+  //     final response = await dio.post(
+  //       "/api/auth/refresh",
+  //       data: {"refreshToken": refreshToken},
+  //       options: Options(extra: {"RequireAuth": false, "SkipRefresh": true}),
+  //     );
+  //     logger.info("/api/auth/refresh: ${response.data}");
 
-      return response.data.data.accessToken;
-    } on DioException catch (e) {
-      logger.info("Error refresh token invalid or expired ${e.response?.data}");
-      return null;
-    }
-  }
+  //     // TODO: Fix this is quite hacky, we don't know the response data structure yet,
+  //     // Create a model for refreshAccessTokenResponse
+  //     return response.data.data.accessToken;
+  //   } on DioException catch (e) {
+  //     logger.error(
+  //       "Refresh token invalid or expired, response:\n${e.response}",
+  //     );
+  //     return null;
+  //   }
+  // }
 }
 
 final apiClient = ApiClient._();
