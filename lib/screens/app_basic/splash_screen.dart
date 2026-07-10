@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:food_delivery/screens/app_basic/login_screen.dart';
+import 'package:food_delivery/utils/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:food_delivery/screens/app_basic/app_intro.dart';
 import 'package:food_delivery/screens/customer/customer_home.dart';
@@ -66,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen>
         _navigateToIntro();
       }
     } catch (e) {
-      debugPrint('❌ Error checking login status: $e');
+      logger.error("Error checking login status: $e");
       // On error, navigate to intro screen
       _navigateToIntro();
     }

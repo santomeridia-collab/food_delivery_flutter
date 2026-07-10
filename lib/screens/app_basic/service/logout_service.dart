@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:food_delivery/api/api_costants.dart';
 import 'package:food_delivery/screens/app_basic/model/logout_model.dart';
+import 'package:food_delivery/utils/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LogoutService {
@@ -15,8 +16,8 @@ class LogoutService {
       final accessToken = await prefs.getString('accessToken');
 
       if (accessToken == null || accessToken.isEmpty) {
-        debugPrint('❌ No access token found');
-        return LogoutResponse(success: false, message: 'No access token found');
+        logger.error("No access token found");
+        return LogoutResponse(success: false, message: "No access token found");
       }
 
       const baseUrl = ApiConstants.baseUrl;
@@ -28,10 +29,13 @@ class LogoutService {
         userId: userId,
       );
 
-      debugPrint('🚀 Logout API Call');
-      debugPrint('📡 URL: $url');
-      debugPrint('📤 Headers: Authorization: Bearer $accessToken');
-      debugPrint('📤 Body: ${request.toJson()}');
+      logger.info("🚀 Logout API Call", tag: "Auth");
+      logger.info("📡 URL: $url", tag: "Auth");
+      logger.info(
+        "📤 Headers: Authorization: Bearer $accessToken",
+        tag: "Auth",
+      );
+      logger.info("📤 Body: ${request.toJson()}", tag: "Auth");
 
       final response = await dio.post(
         url,
@@ -44,8 +48,8 @@ class LogoutService {
         data: request.toJson(),
       );
 
-      debugPrint('📥 Response Status: ${response.statusCode}');
-      debugPrint('📥 Response Data: ${response.data}');
+      logger.info("📥 Response Status: ${response.statusCode}", tag: "Auth");
+      logger.info("📥 Response Data: ${response.data}", tag: "Auth");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return LogoutResponse.fromJson(response.data);
@@ -56,9 +60,9 @@ class LogoutService {
         );
       }
     } on DioException catch (e) {
-      debugPrint('❌ Dio Error: ${e.message}');
-      debugPrint('❌ Status Code: ${e.response?.statusCode}');
-      debugPrint('❌ Response Data: ${e.response?.data}');
+      logger.error("Dio Error: ${e.message}");
+      logger.error("Status Code: ${e.response?.statusCode}");
+      logger.error("Response Data: ${e.response?.data}");
 
       String errorMessage = 'Network error occurred';
       if (e.response?.data != null) {
@@ -70,7 +74,7 @@ class LogoutService {
 
       return LogoutResponse(success: false, message: errorMessage);
     } catch (e) {
-      debugPrint('❌ Unknown Error: $e');
+      logger.error("Unknown Error: $e");
       return LogoutResponse(
         success: false,
         message: 'An unexpected error occurred',
@@ -88,9 +92,9 @@ class LogoutService {
       await prefs.remove('identifier');
       await prefs.remove('userId');
       await prefs.remove('isLoggedIn');
-      debugPrint('✅ Local data cleared successfully');
+      logger.ok("Local data cleared successfully");
     } catch (e) {
-      debugPrint('❌ Error clearing local data: $e');
+      logger.error("Error clearing local data: $e");
     }
   }
 }

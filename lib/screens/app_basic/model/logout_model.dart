@@ -4,11 +4,7 @@ class LogoutResponse {
   final String message;
   final Map<String, dynamic>? data;
 
-  LogoutResponse({
-    required this.success,
-    required this.message,
-    this.data,
-  });
+  LogoutResponse({required this.success, required this.message, this.data});
 
   factory LogoutResponse.fromJson(Map<String, dynamic> json) {
     return LogoutResponse(
@@ -19,11 +15,7 @@ class LogoutResponse {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'success': success,
-      'message': message,
-      'data': data,
-    };
+    return {'success': success, 'message': message, 'data': data};
   }
 }
 
@@ -31,10 +23,7 @@ class LogoutRequest {
   final String? refreshToken;
   final String? userId;
 
-  LogoutRequest({
-    this.refreshToken,
-    this.userId,
-  });
+  LogoutRequest({this.refreshToken, this.userId});
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
@@ -42,4 +31,4 @@ class LogoutRequest {
     if (userId != null) data['userId'] = userId;
     return data;
   }
-}   
+}

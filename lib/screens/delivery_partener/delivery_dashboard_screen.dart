@@ -7,7 +7,6 @@ import 'package:food_delivery/screens/delivery_partener/delivery_profile_screen.
 import 'package:food_delivery/screens/delivery_partener/new_orders_screen.dart';
 import 'package:food_delivery/screens/delivery_partener/provider/delivery_provider.dart';
 import 'package:food_delivery/screens/delivery_partener/widget/delivery_stats_card.dart';
-import 'package:food_delivery/utils/log.dart';
 import 'package:provider/provider.dart';
 
 class DeliveryDashboardScreen extends StatefulWidget {
@@ -177,12 +176,6 @@ class _DashboardContent extends StatelessWidget {
                       value: isOnline,
                       onChanged: (value) {
                         deliveryProvider.toggleOnlineStatus(value);
-                        logger.ok("This is ok logger\nLevel is FINE");
-                        logger.info("This is info logger\nLevel is INFO");
-                        logger.warn(
-                          "Oh shit! this is dangerous\ntest next line\nand next line",
-                        );
-                        logger.error("This is an error logger");
                       },
                       activeThumbColor: Colors.green,
                     ),

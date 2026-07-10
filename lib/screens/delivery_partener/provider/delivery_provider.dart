@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:food_delivery/api/api_client.dart';
+import 'package:food_delivery/utils/log.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../model/delivery_order_model.dart';
 
@@ -44,15 +45,15 @@ class DeliveryProvider extends ChangeNotifier {
       // fetching data for api
       Response response;
       response = await apiClient.dio.get("/api/delivery/dashboard");
-      log(
-        "🟢 SUCCESSFULLY fetched delivery dashboard data: ${response.data.toString()}",
+      logger.ok(
+        "SUCCESSFULLY fetched delivery dashboard data: ${response.data.toString()}",
       );
 
       // setting DeliveryProvider state
       _isOnline = response.data.data.isOnline;
     } on DioException catch (e) {
-      log("ERROR: fetching dashboard data");
-      log("🔴 STATUS: ${e.toString()}");
+      logger.error("ERROR: fetching dashboard data");
+      logger.error("🔴 STATUS: ${e.toString()}");
 
       // todo reset login provider and replace the whole navaigtion stack with role selection screen as root
     }
@@ -247,9 +248,12 @@ class DeliveryProvider extends ChangeNotifier {
   }
 
   Future<void> refreshData() async {
-    log("Refreshing... delivery provider data");
+    logger.info(
+      "Refreshing... delivery provider data",
+      tag: "Delivery Dashboard",
+    );
     await _fetchAndLoadDashboardData();
-    log("finished refreshData");
+    logger.info("finished refreshData", tag: "Delivery Dashboard");
 
     notifyListeners();
   }

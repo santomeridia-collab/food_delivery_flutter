@@ -1,5 +1,6 @@
 // lib/screens/app_basic/controller/login_controller.dart
 import 'package:flutter/material.dart';
+import 'package:food_delivery/utils/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/login_model.dart';
 import '../service/login_service.dart';
@@ -38,9 +39,9 @@ class LoginController with ChangeNotifier {
           await prefs.setString("role", role);
           await prefs.setString("identifier", identifier);
 
-          debugPrint("✅ Tokens saved successfully");
+          logger.ok("Tokens saved successfully", tag: "Auth");
         } catch (e) {
-          debugPrint("❌ SharedPreferences Error: $e");
+          logger.error("SharedPreferences Error: $e", tag: "Auth");
         }
 
         isLoading = false;
@@ -54,7 +55,7 @@ class LoginController with ChangeNotifier {
       }
     } catch (e) {
       errorMessage = "Something went wrong: $e";
-      debugPrint("❌ Login Error: $e");
+      logger.error("Login Error: $e", tag: "Auth");
       isLoading = false;
       notifyListeners();
       return false;

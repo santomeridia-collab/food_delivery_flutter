@@ -111,90 +111,100 @@ class _PasswordLoginScreenState extends State<PasswordLoginScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: loginController.isLoading
-                      ? null
-                      : () async {
-                          if (_formKey.currentState!.validate()) {
-                            final success = await loginController.login(
-                              identifier: _identifierController.text.trim(),
-                              password: _passwordController.text.trim(),
-                              role: widget.role,
-                            );
-
-                            if (success) {
-                              // Show success message
-                              final snackBar = SnackBar(
-                                elevation: 0,
-                                backgroundColor: Colors.transparent,
-                                behavior: SnackBarBehavior.floating,
-                                content: AwesomeSnackbarContent(
-                                  title: 'Success',
-                                  message: 'Login successful!',
-                                  contentType: ContentType.success,
-                                ),
+                  onPressed:
+                      loginController.isLoading
+                          ? null
+                          : () async {
+                            if (_formKey.currentState!.validate()) {
+                              final success = await loginController.login(
+                                identifier: _identifierController.text.trim(),
+                                password: _passwordController.text.trim(),
+                                role: widget.role,
                               );
-                              ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
-                              // Navigate to appropriate dashboard using push
-                              Future.delayed(const Duration(seconds: 1), () {
-                                if (widget.role == 'customer') {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const CustomerHomeScreen(),
-                                    ),
-                                  );
-                                } else if (widget.role == 'restaurant') {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const RestaurantDashboardScreen(),
-                                    ),
-                                  );
-                                } else if (widget.role == 'delivery') {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const DeliveryDashboardScreen(),
-                                    ),
-                                  );
-                                } else {
-                                  // Fallback - show error or go to login options
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Invalid role!'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              });
-                            } else {
-                              // Show error
-                              final snackBar = SnackBar(
-                                elevation: 0,
-                                backgroundColor: Colors.transparent,
-                                behavior: SnackBarBehavior.floating,
-                                content: AwesomeSnackbarContent(
-                                  title: 'Error',
-                                  message: loginController.errorMessage ??
-                                      'Login failed. Please try again.',
-                                  contentType: ContentType.failure,
-                                ),
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                              if (success) {
+                                // Show success message
+                                final snackBar = SnackBar(
+                                  elevation: 0,
+                                  backgroundColor: Colors.transparent,
+                                  behavior: SnackBarBehavior.floating,
+                                  content: AwesomeSnackbarContent(
+                                    title: 'Success',
+                                    message: 'Login successful!',
+                                    contentType: ContentType.success,
+                                  ),
+                                );
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(snackBar);
+
+                                // Navigate to appropriate dashboard using push
+                                Future.delayed(const Duration(seconds: 1), () {
+                                  if (widget.role == 'customer') {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) =>
+                                                const CustomerHomeScreen(),
+                                      ),
+                                    );
+                                  } else if (widget.role == 'restaurant') {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) =>
+                                                const RestaurantDashboardScreen(),
+                                      ),
+                                    );
+                                  } else if (widget.role == 'delivery') {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) =>
+                                                const DeliveryDashboardScreen(),
+                                      ),
+                                    );
+                                  } else {
+                                    // Fallback - show error or go to login options
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Invalid role!'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                });
+                              } else {
+                                // Show error
+                                final snackBar = SnackBar(
+                                  elevation: 0,
+                                  backgroundColor: Colors.transparent,
+                                  behavior: SnackBarBehavior.floating,
+                                  content: AwesomeSnackbarContent(
+                                    title: 'Error',
+                                    message:
+                                        loginController.errorMessage ??
+                                        'Login failed. Please try again.',
+                                    contentType: ContentType.failure,
+                                  ),
+                                );
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(snackBar);
+                              }
                             }
-                          }
-                        },
+                          },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Colors.orange,
                   ),
-                  child: loginController.isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Login',
-                          style: TextStyle(fontSize: 16),
-                        ),
+                  child:
+                      loginController.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Login', style: TextStyle(fontSize: 16)),
                 ),
               ),
             ],

@@ -30,7 +30,7 @@ class Logger {
   }
 
   String _getFormattedHeader({String? tag}) {
-    return "[${_timestamp()}] ${tag != null ? "[${tag.toUpperCase()}]" : ""}";
+    return "[${_timestamp()}] ${tag != null ? "[${tag.padLeft(1, " ").padRight(1, " ")}]" : ""}";
   }
 
   void ok(String msg, {String? tag, bool enableStackTrace = false}) {

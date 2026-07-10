@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:food_delivery/screens/app_basic/model/logout_model.dart';
 import 'package:food_delivery/screens/app_basic/service/logout_service.dart';
+import 'package:food_delivery/utils/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LogoutController with ChangeNotifier {
@@ -48,8 +49,8 @@ class LogoutController with ChangeNotifier {
         return false;
       }
     } catch (e) {
-      errorMessage = 'An error occurred: $e';
-      debugPrint('❌ Logout Controller Error: $e');
+      errorMessage = "An error occurred: $e";
+      logger.error("Logout Controller Error: $e", tag: "Auth");
 
       // Clear local data on error
       await _logoutService.clearLocalData();

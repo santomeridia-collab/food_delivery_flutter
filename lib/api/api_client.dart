@@ -37,7 +37,10 @@ class ApiClient {
           if (e.response?.statusCode == 401) {
             final String? newAccessToken = await _refreshAccessToken();
             if (newAccessToken == null || newAccessToken.isEmpty) {
-              log("Error: Couldn't get new access token, redirecting to login");
+              logger.error(
+                "Couldn't get new access token, redirecting to login",
+                tag: "Error",
+              );
               // TODO: redirect user to login page
 
               return;
@@ -47,7 +50,10 @@ class ApiClient {
             _prefs.setString("accessToken", newAccessToken);
           }
 
-          log("Error caught in ApiClient Interceptor: ${e.response}");
+          logger.error(
+            "Exception caught in ApiClient Interceptor: ${e.response}",
+            tag: "Error",
+          );
         },
       ),
     );
@@ -59,7 +65,7 @@ class ApiClient {
     try {
       final refreshToken = await _prefs.getString("refreshToken");
       if (refreshToken == null || refreshToken.isEmpty) {
-        log("Error: refresh token not found");
+        logger.error("Refresh token not found", tag: "Error");
         return null;
       }
       final response = await dio.post(
@@ -69,11 +75,11 @@ class ApiClient {
           extra: {"RequireAuthInterceptor": false, "SkipRefresh": true},
         ),
       );
-      log("/api/auth/refresh: ${response.data}");
+      logger.info("/api/auth/refresh: ${response.data}");
 
       return response.data.data.accessToken;
     } on DioException catch (e) {
-      log("Error refresh token invalid or expired ${e.response?.data}");
+      logger.info("Error refresh token invalid or expired ${e.response?.data}");
       return null;
     }
   }

@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:food_delivery/api/api_costants.dart';
 import 'package:food_delivery/screens/app_basic/model/register_model.dart';
+import 'package:food_delivery/utils/log.dart';
 
 class RegisterService {
   final Dio dio =
@@ -14,7 +15,7 @@ class RegisterService {
             responseHeader: true,
             responseBody: true,
             error: true,
-            logPrint: (obj) => log(obj.toString()),
+            logPrint: (obj) => logger.info(obj.toString()),
           ),
         );
 
@@ -37,40 +38,40 @@ class RegisterService {
         "role": role,
       };
 
-      log("🚀 ===== REGISTER API START =====");
-      log("📡 URL: $url");
-      log("📤 BODY: $body");
+      logger.info("🚀 ===== REGISTER API START =====", tag: "Auth");
+      logger.info("📡 URL: $url", tag: "Auth");
+      logger.info("📤 BODY: $body", tag: "Auth");
 
       final response = await dio.post(url, data: body);
 
-      log("📥 STATUS CODE: ${response.statusCode}");
-      log("📥 RESPONSE DATA: ${response.data}");
-      log("✅ ===== REGISTER API END =====");
+      logger.info("📥 STATUS CODE: ${response.statusCode}", tag: "Auth");
+      logger.info("📥 RESPONSE DATA: ${response.data}", tag: "Auth");
+      logger.info("✅ ===== REGISTER API END =====", tag: "Auth");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return RegisterResponse.fromJson(response.data);
       } else {
-        log("⚠️ Unexpected status code");
+        logger.error("⚠️ Unexpected status code", tag: "Auth");
         return null;
       }
     } on DioException catch (e) {
-      log("❌ ===== DIO ERROR =====");
+      logger.error("===== DIO ERROR =====", tag: "Auth");
 
-      log("🔴 TYPE: ${e.type}");
-      log("🔴 MESSAGE: ${e.message}");
+      logger.error("TYPE: ${e.type}", tag: "Auth");
+      logger.error("MESSAGE: ${e.message}", tag: "Auth");
 
       if (e.response != null) {
-        log("🔴 STATUS CODE: ${e.response?.statusCode}");
-        log("🔴 RESPONSE DATA: ${e.response?.data}");
-        log("🔴 HEADERS: ${e.response?.headers}");
+        logger.error("STATUS CODE: ${e.response?.statusCode}", tag: "Auth");
+        logger.error("RESPONSE DATA: ${e.response?.data}", tag: "Auth");
+        logger.error("HEADERS: ${e.response?.headers}", tag: "Auth");
       } else {
-        log("🔴 NO RESPONSE FROM SERVER");
+        logger.error("NO RESPONSE FROM SERVER", tag: "Auth");
       }
 
-      log("❌ ===== END ERROR =====");
+      logger.error("===== END ERROR =====", tag: "Auth");
       return null;
     } catch (e) {
-      log("❌ UNKNOWN ERROR: $e");
+      logger.error("UNKNOWN ERROR: $e", tag: "Auth");
       return null;
     }
   }
