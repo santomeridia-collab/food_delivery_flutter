@@ -1,4 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:food_delivery/api/api_client.dart';
+import 'package:food_delivery/utils/log.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../model/delivery_order_model.dart';
 
@@ -23,7 +26,34 @@ class DeliveryProvider extends ChangeNotifier {
   DeliveryStats get stats => _stats;
 
   DeliveryProvider() {
-    _loadSampleData();
+    // _loadSampleData();
+
+    // TODO:
+    // ✅ fetch delivery dashboard data and set _isOnline status
+    // fetch set all, new and active orders
+    // fetch delivery stats
+    _fetchAndLoadDashboardData();
+  }
+
+  /// This method fetch's the data dashboard data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
+  ///
+  /// NOTE: this function does not call notifyListeners(), you have to do that manually
+  Future<void> _fetchAndLoadDashboardData() async {
+    try {
+      // fetching data for api
+      Response response;
+      response = await apiClient.dio.get("/api/delivery/dashboard");
+      logger.ok("SUCCESSFULLY fetched delivery dashboard data: $response");
+
+      // setting DeliveryProvider state
+      _isOnline = response.data.data.isOnline;
+
+      notifyListeners();
+    } on DioException catch (e) {
+      logger.error("fetching dashboard data,\ne: ${e.response}");
+
+      // bubble up the error
+    }
   }
 
   // In _loadSampleData method, ensure IDs have sufficient length
@@ -215,7 +245,10 @@ class DeliveryProvider extends ChangeNotifier {
   }
 
   Future<void> refreshData() async {
-    await Future.delayed(const Duration(seconds: 1));
+    logger.info("Refreshing... delivery provider data");
+    await _fetchAndLoadDashboardData();
+    logger.info("finished refreshData");
+
     notifyListeners();
   }
 }

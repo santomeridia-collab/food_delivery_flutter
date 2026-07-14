@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:food_delivery/screens/customer/utils/app_theme.dart';
+import 'package:food_delivery/utils/log.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -75,7 +76,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
         });
       }
     } catch (e) {
-      print('Error getting address: $e');
+      logger.error("Error getting address: $e");
     }
   }
 

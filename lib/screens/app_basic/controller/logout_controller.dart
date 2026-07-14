@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:food_delivery/screens/app_basic/model/logout_model.dart';
 import 'package:food_delivery/screens/app_basic/service/logout_service.dart';
+import 'package:food_delivery/utils/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LogoutController with ChangeNotifier {
@@ -18,9 +19,9 @@ class LogoutController with ChangeNotifier {
 
     try {
       // Get refreshToken and userId from SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final refreshToken = prefs.getString('refreshToken');
-      final userId = prefs.getString('userId');
+      final prefs = SharedPreferencesAsync();
+      final refreshToken = await prefs.getString('refreshToken');
+      final userId = await prefs.getString('userId');
 
       // Call logout API
       final response = await _logoutService.logout(
@@ -39,7 +40,7 @@ class LogoutController with ChangeNotifier {
         return true;
       } else {
         errorMessage = response?.message ?? 'Logout failed';
-        
+
         // Even if API fails, clear local data
         await _logoutService.clearLocalData();
 
@@ -48,9 +49,9 @@ class LogoutController with ChangeNotifier {
         return false;
       }
     } catch (e) {
-      errorMessage = 'An error occurred: $e';
-      debugPrint('❌ Logout Controller Error: $e');
-      
+      errorMessage = "An error occurred: $e";
+      logger.error("Logout Controller Error: $e");
+
       // Clear local data on error
       await _logoutService.clearLocalData();
 

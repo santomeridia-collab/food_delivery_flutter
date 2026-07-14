@@ -1,33 +1,33 @@
-import 'dart:developer';
 import 'package:dio/dio.dart';
-import 'package:food_delivery/api/api_costants.dart';
+import 'package:food_delivery/api/api_client.dart';
 import 'package:food_delivery/screens/app_basic/model/login_model.dart';
+import 'package:food_delivery/utils/log.dart';
 
 class LoginService {
-  final Dio dio = Dio();
-
   Future<LoginResponse?> loginUser({
     required String identifier,
     required String password,
     required String role,
   }) async {
     try {
-      const baseUrl = ApiConstants.baseUrl;
-      final url = "$baseUrl/api/auth/login/password";
-
       final body = {
         "identifier": identifier,
         "password": password,
         "role": role,
       };
 
-      log("BASE_API_URL = $baseUrl");
-      log("🚀 LOGIN API START");
-      log("📤 BODY: $body");
+      logger.info("🚀 LOGIN API START");
+      logger.info("📤 BODY:\n$body");
 
-      final response = await dio.post(url, data: body);
+      final response = await apiClient.dio.post(
+        "/api/auth/login/password",
+        data: body,
+        options: Options(
+          extra: {"RequireAuth": false, "SkipRefresh": true},
+        ),
+      );
 
-      log("📥 RESPONSE: ${response.data}");
+      logger.ok("📥 RESPONSE: ${response.data}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return LoginResponse.fromJson(response.data);
@@ -35,9 +35,9 @@ class LoginService {
         return null;
       }
     } on DioException catch (e) {
-      log("❌ LOGIN ERROR");
-      log("🔴 STATUS: ${e.response?.statusCode}");
-      log("🔴 DATA: ${e.response?.data}");
+      logger.error("LOGIN ERROR");
+      logger.error("STATUS: ${e.response?.statusCode}");
+      logger.error("DATA: ${e.response?.data}");
       return null;
     }
   }

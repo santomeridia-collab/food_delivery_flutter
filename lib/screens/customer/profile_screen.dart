@@ -281,22 +281,29 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const Divider(height: 0, indent: 56),
                   ProfileMenuItem(
-  icon: Icons.logout,
-  title: logoutController.isLoading ? 'Logging out...' : 'Logout',
-  onTap: logoutController.isLoading ? () {} : () => _showLogoutDialog(context),
-  textColor: Colors.red,
-  iconColor: Colors.red,
-  trailing: logoutController.isLoading
-      ? const SizedBox(
-          height: 20,
-          width: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Colors.red,
-          ),
-        )
-      : null,
-),
+                    icon: Icons.logout,
+                    title:
+                        logoutController.isLoading
+                            ? 'Logging out...'
+                            : 'Logout',
+                    onTap:
+                        logoutController.isLoading
+                            ? () {}
+                            : () => _showLogoutDialog(context),
+                    textColor: Colors.red,
+                    iconColor: Colors.red,
+                    trailing:
+                        logoutController.isLoading
+                            ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.red,
+                              ),
+                            )
+                            : null,
+                  ),
                 ],
               ),
             ),
@@ -339,104 +346,110 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
-    final logoutController = Provider.of<LogoutController>(context, listen: false);
-    
+    final logoutController = Provider.of<LogoutController>(
+      context,
+      listen: false,
+    );
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Logout'),
+            content: const Text('Are you sure you want to logout?'),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              Consumer<LogoutController>(
+                builder: (context, controller, _) {
+                  return TextButton(
+                    onPressed:
+                        controller.isLoading
+                            ? null
+                            : () async {
+                              // Perform logout
+                              final success = await controller.performLogout();
+
+                              // Close dialog
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                              }
+
+                              if (success) {
+                                // Show success message
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Logged out successfully'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                }
+
+                                // Navigate to login options screen
+                                if (context.mounted) {
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => const LoginOptionsScreen(
+                                            role: 'customer',
+                                          ),
+                                    ),
+                                    (route) => false,
+                                  );
+                                }
+                              } else {
+                                // Show error message
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        controller.errorMessage ??
+                                            'Logout failed. Please try again.',
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+
+                                // Even if API fails, navigate to login
+                                if (context.mounted) {
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => const LoginOptionsScreen(
+                                            role: 'customer',
+                                          ),
+                                    ),
+                                    (route) => false,
+                                  );
+                                }
+                              }
+                            },
+                    child:
+                        controller.isLoading
+                            ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : const Text(
+                              'Logout',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                  );
+                },
+              ),
+            ],
           ),
-          Consumer<LogoutController>(
-            builder: (context, controller, _) {
-              return TextButton(
-                onPressed: controller.isLoading
-                    ? null
-                    : () async {
-                        // Perform logout
-                        final success = await controller.performLogout();
-
-                        // Close dialog
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                        }
-
-                        if (success) {
-                          // Show success message
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Logged out successfully'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          }
-
-                          // Navigate to login options screen
-                          if (context.mounted) {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginOptionsScreen(
-                                  role: 'customer',
-                                ),
-                              ),
-                              (route) => false,
-                            );
-                          }
-                        } else {
-                          // Show error message
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  controller.errorMessage ??
-                                      'Logout failed. Please try again.',
-                                ),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                          
-                          // Even if API fails, navigate to login
-                          if (context.mounted) {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginOptionsScreen(
-                                  role: 'customer',
-                                ),
-                              ),
-                              (route) => false,
-                            );
-                          }
-                        }
-                      },
-                child: controller.isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'Logout',
-                        style: TextStyle(color: Colors.red),
-                      ),
-              );
-            },
-          ),
-        ],
-      ),
     );
   }
 
