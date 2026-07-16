@@ -26,39 +26,35 @@ class DeliveryProvider extends ChangeNotifier {
   DeliveryStats get stats => _stats;
 
   DeliveryProvider() {
-    // _loadSampleData();
-
-    // TODO:
-    // ✅ fetch delivery dashboard data and set _isOnline status
-    // fetch set all, new and active orders
-    // fetch delivery stats
-    _fetchAndLoadDashboardData();
+    _fetchAndLoadDashboardData()
+        .then((result) => notifyListeners())
+        .catchError(
+          (e) =>
+              logger.error("Couldn't fetch dashboard data:\n\n${e.response}"),
+        );
+    notifyListeners();
   }
 
-  /// This method fetch's the data dashboard data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
+  /// This method fetch's the dashboard data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
   ///
   /// NOTE: this function does not call notifyListeners(), you have to do that manually
   Future<void> _fetchAndLoadDashboardData() async {
-    try {
-      // fetching data for api
-      Response response;
-      response = await apiClient.dio.get("/api/delivery/dashboard");
-      logger.ok("SUCCESSFULLY fetched delivery dashboard data: $response");
+    logger.info("Fetching delivery dashboard data");
+    Response response;
+    response = await apiClient.dio.get("/api/delivery/dashboard");
+    logger.ok("SUCCESSFULLY fetched delivery dashboard data: $response");
 
-      // setting DeliveryProvider state
-      _isOnline = response.data.data.isOnline;
-
-      notifyListeners();
-    } on DioException catch (e) {
-      logger.error("fetching dashboard data,\ne: ${e.response}");
-
-      // bubble up the error
-    }
+    // setting DeliveryProvider state TODO: add a model for delivery_dashboard_response
+    _isOnline = response.data.data.isOnline;
   }
 
-  // In _loadSampleData method, ensure IDs have sufficient length
+  void setOnlineStatus(bool value) {
+    _isOnline = value;
+    notifyListeners();
+  }
 
-  void _loadSampleData() {
+  // In _loadDataTest method, ensure IDs have sufficient length
+  void _loadDataTest() {
     _newOrders = [
       DeliveryOrder(
         id: 'DEL001',
@@ -116,12 +112,33 @@ class DeliveryProvider extends ChangeNotifier {
     ];
 
     _allOrders = [..._newOrders, ..._activeOrders];
-    _updateStats();
+    _updateStatsTest();
   }
 
-  void toggleOnlineStatus(bool value) {
-    _isOnline = value;
-    notifyListeners();
+  void _updateStatsTest() {
+    final today = DateTime.now();
+    final todayOrders = _allOrders.where(
+      (o) =>
+          o.status == DeliveryOrderStatus.delivered &&
+          o.deliveredAt != null &&
+          o.deliveredAt!.day == today.day &&
+          o.deliveredAt!.month == today.month,
+    );
+
+    _stats = DeliveryStats(
+      todayDeliveries: todayOrders.length,
+      todayEarnings: todayOrders.fold(0.0, (sum, o) => sum + o.deliveryFee),
+      totalDeliveries:
+          _allOrders
+              .where((o) => o.status == DeliveryOrderStatus.delivered)
+              .length,
+      totalEarnings: _allOrders
+          .where((o) => o.status == DeliveryOrderStatus.delivered)
+          .fold(0.0, (sum, o) => sum + o.deliveryFee),
+      rating: 4.8,
+      onlineHours: 5,
+      acceptanceRate: 95,
+    );
   }
 
   void acceptOrder(String orderId) {
@@ -154,7 +171,7 @@ class DeliveryProvider extends ChangeNotifier {
       _newOrders.removeAt(index);
       _activeOrders.insert(0, updatedOrder);
       _allOrders = [..._newOrders, ..._activeOrders];
-      _updateStats();
+      _updateStatsTest();
       notifyListeners();
     }
   }
@@ -213,42 +230,20 @@ class DeliveryProvider extends ChangeNotifier {
       }
 
       _allOrders = [..._newOrders, ..._activeOrders];
-      _updateStats();
+      _updateStatsTest();
       notifyListeners();
     }
   }
 
-  void _updateStats() {
-    final today = DateTime.now();
-    final todayOrders = _allOrders.where(
-      (o) =>
-          o.status == DeliveryOrderStatus.delivered &&
-          o.deliveredAt != null &&
-          o.deliveredAt!.day == today.day &&
-          o.deliveredAt!.month == today.month,
-    );
-
-    _stats = DeliveryStats(
-      todayDeliveries: todayOrders.length,
-      todayEarnings: todayOrders.fold(0.0, (sum, o) => sum + o.deliveryFee),
-      totalDeliveries:
-          _allOrders
-              .where((o) => o.status == DeliveryOrderStatus.delivered)
-              .length,
-      totalEarnings: _allOrders
-          .where((o) => o.status == DeliveryOrderStatus.delivered)
-          .fold(0.0, (sum, o) => sum + o.deliveryFee),
-      rating: 4.8,
-      onlineHours: 5,
-      acceptanceRate: 95,
-    );
-  }
-
   Future<void> refreshData() async {
-    logger.info("Refreshing... delivery provider data");
-    await _fetchAndLoadDashboardData();
-    logger.info("finished refreshData");
+    try {
+      logger.info("Refreshing... delivery provider data");
+      await _fetchAndLoadDashboardData();
+      logger.ok("finished refreshData successfully");
 
-    notifyListeners();
+      notifyListeners();
+    } on DioException catch (e) {
+      logger.error("Couldn't fetching dashboard data:\n\n${e.response}");
+    }
   }
 }

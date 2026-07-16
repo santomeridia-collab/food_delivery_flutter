@@ -175,7 +175,7 @@ class _DashboardContent extends StatelessWidget {
                     Switch(
                       value: isOnline,
                       onChanged: (value) {
-                        deliveryProvider.toggleOnlineStatus(value);
+                        deliveryProvider.setOnlineStatus(value);
                       },
                       activeThumbColor: Colors.green,
                     ),

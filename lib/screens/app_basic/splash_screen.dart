@@ -1,9 +1,10 @@
 // lib/screens/splash_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:food_delivery/global_providers/session_provider.dart';
 import 'package:food_delivery/screens/app_basic/login_screen.dart';
 import 'package:food_delivery/utils/log.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'package:food_delivery/screens/app_basic/app_intro.dart';
 import 'package:food_delivery/screens/customer/customer_home.dart';
 import 'package:food_delivery/screens/delivery_partener/delivery_dashboard_screen.dart';
@@ -48,20 +49,13 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     try {
-      final prefs = SharedPreferencesAsync();
-      final accessToken = await prefs.getString('accessToken');
-      final refreshToken = await prefs.getString('refreshToken');
-      final role = await prefs.getString('role') ?? '';
+      // load saved tokens at the start of the app
+      final sessionProvider = context.read<SessionProvider>();
+      await sessionProvider.loadFromPrefs();
 
-      // Check if tokens exist
-      if (accessToken != null &&
-          refreshToken != null &&
-          accessToken.isNotEmpty &&
-          refreshToken.isNotEmpty) {
-        // TODO: validate access token from API
-
+      if (sessionProvider.isLoggedIn) {
         // Token exists - navigate to appropriate dashboard based on role
-        _navigateToDashboard(role);
+        _navigateToDashboard(sessionProvider.session.role!);
       } else {
         // No token - navigate to intro screen
         _navigateToIntro();

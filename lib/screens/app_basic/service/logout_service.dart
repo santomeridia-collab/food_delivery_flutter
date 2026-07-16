@@ -1,14 +1,11 @@
 // lib/screens/app_basic/service/logout_service.dart
 import 'package:dio/dio.dart';
 import 'package:food_delivery/api/api_client.dart';
-import 'package:food_delivery/api/api_costants.dart';
 import 'package:food_delivery/screens/app_basic/model/logout_model.dart';
 import 'package:food_delivery/utils/log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LogoutService {
-  final Dio dio = Dio();
-
   Future<LogoutResponse?> logout({String? refreshToken, String? userId}) async {
     try {
       // Get access token from SharedPreferences
@@ -72,6 +69,7 @@ class LogoutService {
 
   // Helper method to clear local data
   Future<void> clearLocalData() async {
+    // TODO: use session provider instead to clear this
     try {
       final prefs = SharedPreferencesAsync();
       await prefs.remove('accessToken');

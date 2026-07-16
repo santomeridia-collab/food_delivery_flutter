@@ -64,7 +64,6 @@ class LogoutController with ChangeNotifier {
   // Reset controller state
   void reset() {
     isLoading = false;
-    logoutResponse = null;
     errorMessage = null;
     notifyListeners();
   }
