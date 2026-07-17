@@ -45,7 +45,7 @@ class ApiClient {
       // Auth interceptor
       InterceptorsWrapper(
         onRequest: (RequestOptions options, handler) async {
-          // don't add auth headers if authenticator is not required not required
+          // don't add auth headers if authenticator is not required
           final authRequired = options.extra["RequireAuth"] ?? true;
           if (!authRequired) return handler.next(options);
 
@@ -111,9 +111,14 @@ class ApiClient {
               "RequireAuth": false,
               "SkipRefresh": true,
             };
-            return handler.resolve(
-              await _retry(retryRequestOptions, newAccessToken),
+
+            final retryResponse = await _retry(
+              retryRequestOptions,
+              newAccessToken,
             );
+            if (retryResponse == null) return handler.next(e);
+
+            return handler.resolve(retryResponse);
           }
 
           return handler.next(e);
@@ -141,9 +146,19 @@ class ApiClient {
     }
   }
 
-  Future<Response> _retry(RequestOptions req, String newAccessToken) {
-    req.headers["Authorization"] = "Bearer $newAccessToken";
-    return dio.fetch(req);
+  /// This method queues a retry request with provided request options and attaches the newAccessToken provided
+  /// If the request fails returns null
+  Future<Response?> _retry(RequestOptions req, String newAccessToken) async {
+    try {
+      req.headers["Authorization"] = "Bearer $newAccessToken";
+      final response = await dio.fetch(req);
+
+      return response;
+    } catch (e) {
+      logger.error("Retry request failed with following error\n\n$e");
+
+      return null;
+    }
   }
 }
 
