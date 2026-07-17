@@ -64,7 +64,7 @@ class ApiClient {
             );
           }
 
-          logger.ok("Access Token found attaching:\n\n$accessToken");
+          logger.info("Access Token found attaching:\n\n$accessToken");
           options.headers["Authorization"] = "Bearer $accessToken";
 
           return handler.next(options);
@@ -141,7 +141,6 @@ class ApiClient {
 
       return newAccessToken;
     } catch (e) {
-      logger.error("Failed refreshing access token: \n\n$e");
       return null;
     }
   }

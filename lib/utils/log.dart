@@ -44,7 +44,7 @@ class Logger {
   void info(String msg, {bool enableStackTrace = false}) {
     // pastel off-white ASCAII
     log(
-      "${_getAscaiiFormattedTimestamp()}   \x1b[1;38;2;250;249;246m[INFO]\x1b[0m : \x1b[1;37m\t\t$msg\n\x1b[0m\n",
+      "${_getAscaiiFormattedTimestamp()}   \x1b[1;38;2;167;199;231m[INFO]\x1b[0m : \x1b[1;37m\t\t$msg\n\x1b[0m\n",
       name: _appName,
       level: LogLevel.INFO.value,
       stackTrace: enableStackTrace ? StackTrace.current : null,

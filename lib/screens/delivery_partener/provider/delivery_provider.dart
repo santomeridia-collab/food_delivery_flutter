@@ -1,9 +1,9 @@
-import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:food_delivery/api/api_client.dart';
-import 'package:food_delivery/utils/log.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../model/delivery_order_model.dart';
+import "package:dio/dio.dart";
+import "package:flutter/material.dart";
+import "package:google_maps_flutter/google_maps_flutter.dart";
+import "package:food_delivery/api/api_client.dart";
+import "package:food_delivery/utils/log.dart";
+import "package:food_delivery/screens/delivery_partener/model/delivery_order_model.dart";
 
 class DeliveryProvider extends ChangeNotifier {
   List<DeliveryOrder> _allOrders = [];
@@ -26,26 +26,32 @@ class DeliveryProvider extends ChangeNotifier {
   DeliveryStats get stats => _stats;
 
   DeliveryProvider() {
-    _fetchAndLoadDashboardData()
-        .then((result) => notifyListeners())
-        .catchError(
-          (e) =>
-              logger.error("Couldn't fetch dashboard data:\n\n${e.response}"),
-        );
-    notifyListeners();
+    _init();
+  }
+
+  Future<void> _init() async {
+    try {
+      logger.info("Fetching and loading delivery dashboard data");
+      await _fetchAndLoadDashboardData();
+      logger.ok("Successfully fetched and loading delivery dashboard data");
+
+      notifyListeners();
+    } catch (e) {
+      logger.error("Failed to fetch and load dashboard data:\n\n$e");
+    }
   }
 
   /// This method fetch's the dashboard data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
   ///
   /// NOTE: this function does not call notifyListeners(), you have to do that manually
   Future<void> _fetchAndLoadDashboardData() async {
-    logger.info("Fetching delivery dashboard data");
     Response response;
     response = await apiClient.dio.get("/api/delivery/dashboard");
-    logger.ok("SUCCESSFULLY fetched delivery dashboard data: $response");
+    logger.info("/api/delivery/dashboard response:\n\n$response");
 
-    // setting DeliveryProvider state TODO: add a model for delivery_dashboard_response
-    _isOnline = response.data.data.isOnline;
+    // NOTE: this is just for testing purposes
+    // TODO: create a model DeliveryDashboardResponse for JSON parsing
+    _isOnline = response.data["data"]["isOnline"];
   }
 
   void setOnlineStatus(bool value) {
