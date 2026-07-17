@@ -1,16 +1,14 @@
 // lib/screens/app_basic/service/logout_service.dart
 import 'package:dio/dio.dart';
 import 'package:food_delivery/api/api_client.dart';
+import 'package:food_delivery/global_providers/session_provider.dart';
 import 'package:food_delivery/screens/app_basic/model/logout_model.dart';
 import 'package:food_delivery/utils/log.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LogoutService {
   Future<LogoutResponse?> logout({String? refreshToken, String? userId}) async {
     try {
-      // Get access token from SharedPreferences
-      final prefs = SharedPreferencesAsync();
-      final accessToken = await prefs.getString('accessToken');
+      final accessToken = sessionProvider.session.accessToken;
 
       if (accessToken == null || accessToken.isEmpty) {
         logger.error("No access token found");
@@ -69,18 +67,6 @@ class LogoutService {
 
   // Helper method to clear local data
   Future<void> clearLocalData() async {
-    // TODO: use session provider instead to clear this
-    try {
-      final prefs = SharedPreferencesAsync();
-      await prefs.remove('accessToken');
-      await prefs.remove('refreshToken');
-      await prefs.remove('role');
-      await prefs.remove('identifier');
-      await prefs.remove('userId');
-      await prefs.remove('isLoggedIn');
-      logger.ok("Local data cleared successfully");
-    } catch (e) {
-      logger.error("Error clearing local data: $e");
-    }
+    sessionProvider.clear();
   }
 }

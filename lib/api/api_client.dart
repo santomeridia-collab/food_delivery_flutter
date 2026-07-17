@@ -3,6 +3,40 @@ import 'package:food_delivery/api/api_costants.dart';
 import 'package:food_delivery/global_providers/session_provider.dart';
 import 'package:food_delivery/utils/log.dart';
 
+class RefreshData {
+  String accessToken;
+  String refreshToken;
+
+  RefreshData({required this.accessToken, required this.refreshToken});
+
+  factory RefreshData.fromJson(Map<String, dynamic> json) {
+    return RefreshData(
+      accessToken: json["accessToken"],
+      refreshToken: json["refreshToken"],
+    );
+  }
+}
+
+class RefreshResponse {
+  final bool success;
+  final String message;
+  final RefreshData data;
+
+  RefreshResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory RefreshResponse.fromJson(Map<String, dynamic> json) {
+    return RefreshResponse(
+      success: json["success"],
+      message: json["message"],
+      data: RefreshData.fromJson(json["data"]),
+    );
+  }
+}
+
 class ApiClient {
   final Dio dio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
 
@@ -71,10 +105,14 @@ class ApiClient {
             sessionProvider.updateAccessToken(newAccessToken);
 
             // call retry
-            // TODO: set the SkipRefresh Options: extra: to false because that might lead to an infinite circular request loop
             logger.warn("Retrying failed request...");
+            final retryRequestOptions = e.requestOptions;
+            retryRequestOptions.extra = {
+              "RequireAuth": false,
+              "SkipRefresh": true,
+            };
             return handler.resolve(
-              await _retry(e.requestOptions, newAccessToken),
+              await _retry(retryRequestOptions, newAccessToken),
             );
           }
 
@@ -93,14 +131,8 @@ class ApiClient {
         "/api/auth/refresh",
         data: {"refreshToken": refreshToken},
       );
-
-      // TODO: Create a model for refreshAccessTokenResponse and
-      // have a .fromJSON constructor so i don't have to do this ["data"]["accessToken"] shananegon
-      final newAccessToken = response.data["data"]["accessToken"];
-      if (newAccessToken == null) {
-        logger.error("recieved accessToken is null");
-        return null;
-      }
+      final parsedResponse = RefreshResponse.fromJson(response.data);
+      final newAccessToken = parsedResponse.data.accessToken;
 
       return newAccessToken;
     } catch (e) {
@@ -109,8 +141,8 @@ class ApiClient {
     }
   }
 
-  Future<Response> _retry(RequestOptions req, String newToken) {
-    req.headers["Authorization"] = "Bearer $newToken";
+  Future<Response> _retry(RequestOptions req, String newAccessToken) {
+    req.headers["Authorization"] = "Bearer $newAccessToken";
     return dio.fetch(req);
   }
 }
