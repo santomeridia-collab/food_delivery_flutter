@@ -1,15 +1,13 @@
 // lib/screens/app_basic/controller/login_controller.dart
 import 'package:flutter/material.dart';
+import 'package:food_delivery/global_providers/session_provider.dart';
 import 'package:food_delivery/utils/log.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../model/login_model.dart';
 import '../service/login_service.dart';
 
 class LoginController with ChangeNotifier {
   final LoginService _service = LoginService();
 
   bool isLoading = false;
-  LoginResponse? loginResponse;
   String? errorMessage;
 
   Future<bool> login({
@@ -29,15 +27,16 @@ class LoginController with ChangeNotifier {
       );
 
       if (response != null && response.success) {
-        loginResponse = response;
-
         // Save tokens
         try {
-          final prefs = SharedPreferencesAsync();
-          await prefs.setString("accessToken", response.data.accessToken);
-          await prefs.setString("refreshToken", response.data.refreshToken);
-          await prefs.setString("role", role);
-          await prefs.setString("identifier", identifier);
+          sessionProvider.setSession(
+            // TODO: temporarily setting userId to empty string. BUG: this will break logout as it depends on userId
+            "",
+            identifier,
+            response.data.accessToken,
+            response.data.refreshToken,
+            role,
+          );
 
           logger.ok("Tokens saved successfully");
         } catch (e) {
@@ -64,7 +63,6 @@ class LoginController with ChangeNotifier {
 
   void reset() {
     isLoading = false;
-    loginResponse = null;
     errorMessage = null;
     notifyListeners();
   }

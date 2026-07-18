@@ -1,59 +1,125 @@
 import 'package:dio/dio.dart';
 import 'package:food_delivery/api/api_costants.dart';
+import 'package:food_delivery/global_providers/session_provider.dart';
 import 'package:food_delivery/utils/log.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+class RefreshData {
+  String accessToken;
+  String refreshToken;
+
+  RefreshData({required this.accessToken, required this.refreshToken});
+
+  factory RefreshData.fromJson(Map<String, dynamic> json) {
+    return RefreshData(
+      accessToken: json["accessToken"],
+      refreshToken: json["refreshToken"],
+    );
+  }
+}
+
+class RefreshResponse {
+  final bool success;
+  final String message;
+  final RefreshData data;
+
+  RefreshResponse({
+    required this.success,
+    required this.message,
+    required this.data,
+  });
+
+  factory RefreshResponse.fromJson(Map<String, dynamic> json) {
+    return RefreshResponse(
+      success: json["success"],
+      message: json["message"],
+      data: RefreshData.fromJson(json["data"]),
+    );
+  }
+}
 
 class ApiClient {
   final Dio dio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
-  final _prefs = SharedPreferencesAsync();
 
-  // private contructor i.e. cannot be called outside this file
   ApiClient._() {
     dio.interceptors.add(
+      // Auth interceptor
       InterceptorsWrapper(
         onRequest: (RequestOptions options, handler) async {
-          // don't add auth headers if interceptor not required
+          // don't add auth headers if authenticator is not required
           final authRequired = options.extra["RequireAuth"] ?? true;
-          if (!authRequired) {
-            return handler.next(options);
+          if (!authRequired) return handler.next(options);
+
+          final accessToken = sessionProvider.session.accessToken;
+          // stop the request if access token not found
+          if (accessToken == null) {
+            logger.warn(
+              "Access token not found Rejecting.\nIf you do not wish to attach access token to the request header, set options.extra[\"RequireAuth\"] to true",
+            );
+            return handler.reject(
+              DioException(
+                requestOptions: options,
+                message: "Access token not found. check logs",
+                type: DioExceptionType.cancel,
+              ),
+            );
           }
 
-          String? accessToken = await _prefs.getString("accessToken");
-          logger.ok("Access Token found attaching:\n $accessToken");
-          if (accessToken != null) {
-            options.headers["Authorization"] = "Bearer $accessToken";
-          }
+          logger.info("Access Token found attaching:\n\n$accessToken");
+          options.headers["Authorization"] = "Bearer $accessToken";
 
-          handler.next(options);
+          return handler.next(options);
         },
 
         onError: (DioException e, handler) async {
-          logger.error("Request Failed with following error:\n $e");
+          // Unauthorized error the access token is either expired or invalid
+          if (e.response?.statusCode == 401) {
+            logger.error(
+              "401 Unauthorized access status code, recieved \n\n${e.response}",
+            );
+            final skipRefresh = e.requestOptions.extra["SkipRefresh"] ?? false;
+            if (skipRefresh) {
+              logger.warn(
+                "SkipRefresh enabled, skipping attempt to get new access token",
+              );
+              return handler.next(e);
+            }
 
-          // // Unauthorized error the access token is either expired or invalid
-          // if (e.response?.statusCode == HttpStatus.unauthorized) {
-          //   logger.error("Unauthorized access status code, recieved");
-          //   final skipRefresh = e.requestOptions.extra["SkipRefresh"] ?? false;
-          //   if (skipRefresh) {
-          //     logger.info(
-          //       "SkipRefresh enabled, skipping the attemp to get new access token",
-          //     );
-          //     return handler.next(e);
-          //   }
+            logger.warn("Attempting to refresh expired/invalid accessToken");
+            final refreshToken = sessionProvider.session.refreshToken;
+            if (refreshToken == null) {
+              logger.error("Refresh token not found");
+              return handler.next(e);
+            }
 
-          //   logger.warn(
-          //     "Attempting to refresh expired/invalid accessToken via refreshToken",
-          //   );
-          //   final String? newAccessToken = await _refreshAccessToken();
-          //   if (newAccessToken == null) {
-          //     logger.error("Failed to get new access token");
-          //     return handler.next(e);
-          //   }
+            String? newAccessToken;
+            newAccessToken = await _refreshAccessToken(refreshToken);
+            if (newAccessToken == null) {
+              logger.error(
+                "Failed Attempt to refresh access token. Cleaning sessionProvider data...",
+              );
+              sessionProvider.clear();
+              return handler.next(e);
+            }
 
-          //   logger.ok("Succesfully fetched new access token: $newAccessToken");
-          //   _prefs.setString("accessToken", newAccessToken);
-          //   // call retry
-          // }
+            logger.ok("Success fetched new access token:\n\n$newAccessToken");
+            sessionProvider.updateAccessToken(newAccessToken);
+
+            // call retry
+            logger.warn("Retrying failed request...");
+            final retryRequestOptions = e.requestOptions;
+            retryRequestOptions.extra = {
+              "RequireAuth": false,
+              "SkipRefresh": true,
+            };
+
+            final retryResponse = await _retry(
+              retryRequestOptions,
+              newAccessToken,
+            );
+            if (retryResponse == null) return handler.next(e);
+
+            return handler.resolve(retryResponse);
+          }
 
           return handler.next(e);
         },
@@ -61,33 +127,42 @@ class ApiClient {
     );
   }
 
-  // ================================ THIS FUNCTION DOESN'T BELONG HERE, MOVE IT TO THE AUTH LAYER ================================
-  /// This method uses "refreshToken" from SharedPreferencesAsync (if exists) and  fetches a new accessToken from api and returns it
+  /// This method uses "refreshToken" from SharedPreferencesAsync (if exists) and fetches a new accessToken from api and returns it
   /// if refreshToken request fails returns null
-  // Future<String?> _refreshAccessToken() async {
-  //   try {
-  //     final refreshToken = await _prefs.getString("refreshToken");
-  //     if (refreshToken == null) {
-  //       logger.error("Refresh token not found");
-  //       return null;
-  //     }
-  //     final response = await dio.post(
-  //       "/api/auth/refresh",
-  //       data: {"refreshToken": refreshToken},
-  //       options: Options(extra: {"RequireAuth": false, "SkipRefresh": true}),
-  //     );
-  //     logger.info("/api/auth/refresh: ${response.data}");
+  Future<String?> _refreshAccessToken(String refreshToken) async {
+    try {
+      final tempDio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
+      final response = await tempDio.post(
+        "/api/auth/refresh",
+        data: {"refreshToken": refreshToken},
+      );
+      final parsedResponse = RefreshResponse.fromJson(response.data);
+      final newAccessToken = parsedResponse.data.accessToken;
 
-  //     // TODO: Fix this is quite hacky, we don't know the response data structure yet,
-  //     // Create a model for refreshAccessTokenResponse
-  //     return response.data.data.accessToken;
-  //   } on DioException catch (e) {
-  //     logger.error(
-  //       "Refresh token invalid or expired, response:\n${e.response}",
-  //     );
-  //     return null;
-  //   }
-  // }
+      return newAccessToken;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// This method queues a retry request with provided request options and attaches the newAccessToken provided
+  /// If the request fails returns null
+  Future<Response?> _retry(RequestOptions req, String newAccessToken) async {
+    try {
+      req.headers["Authorization"] = "Bearer $newAccessToken";
+      final response = await dio.fetch(req);
+
+      return response;
+    } catch (e) {
+      logger.error("Retry request failed with following error\n\n$e");
+
+      return null;
+    }
+  }
 }
 
+/// the dio instance i.e. apiClient.dio has the baseURL set to the backend api url.
+///
+/// WARNING: **DO NOT** use this to make request to external url, or fetching data from other sites.
+/// To make requests to external url use: dio = Dio()
 final apiClient = ApiClient._();

@@ -1,9 +1,9 @@
-import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:food_delivery/api/api_client.dart';
-import 'package:food_delivery/utils/log.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../model/delivery_order_model.dart';
+import "package:dio/dio.dart";
+import "package:flutter/material.dart";
+import "package:google_maps_flutter/google_maps_flutter.dart";
+import "package:food_delivery/api/api_client.dart";
+import "package:food_delivery/utils/log.dart";
+import "package:food_delivery/screens/delivery_partener/model/delivery_order_model.dart";
 
 class DeliveryProvider extends ChangeNotifier {
   List<DeliveryOrder> _allOrders = [];
@@ -26,39 +26,41 @@ class DeliveryProvider extends ChangeNotifier {
   DeliveryStats get stats => _stats;
 
   DeliveryProvider() {
-    // _loadSampleData();
-
-    // TODO:
-    // ✅ fetch delivery dashboard data and set _isOnline status
-    // fetch set all, new and active orders
-    // fetch delivery stats
-    _fetchAndLoadDashboardData();
+    _init();
   }
 
-  /// This method fetch's the data dashboard data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
-  ///
-  /// NOTE: this function does not call notifyListeners(), you have to do that manually
-  Future<void> _fetchAndLoadDashboardData() async {
+  Future<void> _init() async {
     try {
-      // fetching data for api
-      Response response;
-      response = await apiClient.dio.get("/api/delivery/dashboard");
-      logger.ok("SUCCESSFULLY fetched delivery dashboard data: $response");
-
-      // setting DeliveryProvider state
-      _isOnline = response.data.data.isOnline;
+      logger.info("Fetching and loading delivery dashboard data");
+      await _fetchAndLoadDashboardData();
+      logger.ok("Successfully fetched and loading delivery dashboard data");
 
       notifyListeners();
-    } on DioException catch (e) {
-      logger.error("fetching dashboard data,\ne: ${e.response}");
-
-      // bubble up the error
+    } catch (e) {
+      logger.error("Failed to fetch and load dashboard data:\n\n$e");
     }
   }
 
-  // In _loadSampleData method, ensure IDs have sufficient length
+  /// This method fetch's the dashboard data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
+  ///
+  /// NOTE: this function does not call notifyListeners(), you have to do that manually
+  Future<void> _fetchAndLoadDashboardData() async {
+    Response response;
+    response = await apiClient.dio.get("/api/delivery/dashboard");
+    logger.info("/api/delivery/dashboard response:\n\n$response");
 
-  void _loadSampleData() {
+    // NOTE: this is just for testing purposes
+    // TODO: create a model DeliveryDashboardResponse for JSON parsing
+    _isOnline = response.data["data"]["isOnline"];
+  }
+
+  void setOnlineStatus(bool value) {
+    _isOnline = value;
+    notifyListeners();
+  }
+
+  // In _loadDataTest method, ensure IDs have sufficient length
+  void _loadDataTest() {
     _newOrders = [
       DeliveryOrder(
         id: 'DEL001',
@@ -116,12 +118,33 @@ class DeliveryProvider extends ChangeNotifier {
     ];
 
     _allOrders = [..._newOrders, ..._activeOrders];
-    _updateStats();
+    _updateStatsTest();
   }
 
-  void toggleOnlineStatus(bool value) {
-    _isOnline = value;
-    notifyListeners();
+  void _updateStatsTest() {
+    final today = DateTime.now();
+    final todayOrders = _allOrders.where(
+      (o) =>
+          o.status == DeliveryOrderStatus.delivered &&
+          o.deliveredAt != null &&
+          o.deliveredAt!.day == today.day &&
+          o.deliveredAt!.month == today.month,
+    );
+
+    _stats = DeliveryStats(
+      todayDeliveries: todayOrders.length,
+      todayEarnings: todayOrders.fold(0.0, (sum, o) => sum + o.deliveryFee),
+      totalDeliveries:
+          _allOrders
+              .where((o) => o.status == DeliveryOrderStatus.delivered)
+              .length,
+      totalEarnings: _allOrders
+          .where((o) => o.status == DeliveryOrderStatus.delivered)
+          .fold(0.0, (sum, o) => sum + o.deliveryFee),
+      rating: 4.8,
+      onlineHours: 5,
+      acceptanceRate: 95,
+    );
   }
 
   void acceptOrder(String orderId) {
@@ -154,7 +177,7 @@ class DeliveryProvider extends ChangeNotifier {
       _newOrders.removeAt(index);
       _activeOrders.insert(0, updatedOrder);
       _allOrders = [..._newOrders, ..._activeOrders];
-      _updateStats();
+      _updateStatsTest();
       notifyListeners();
     }
   }
@@ -213,42 +236,20 @@ class DeliveryProvider extends ChangeNotifier {
       }
 
       _allOrders = [..._newOrders, ..._activeOrders];
-      _updateStats();
+      _updateStatsTest();
       notifyListeners();
     }
   }
 
-  void _updateStats() {
-    final today = DateTime.now();
-    final todayOrders = _allOrders.where(
-      (o) =>
-          o.status == DeliveryOrderStatus.delivered &&
-          o.deliveredAt != null &&
-          o.deliveredAt!.day == today.day &&
-          o.deliveredAt!.month == today.month,
-    );
-
-    _stats = DeliveryStats(
-      todayDeliveries: todayOrders.length,
-      todayEarnings: todayOrders.fold(0.0, (sum, o) => sum + o.deliveryFee),
-      totalDeliveries:
-          _allOrders
-              .where((o) => o.status == DeliveryOrderStatus.delivered)
-              .length,
-      totalEarnings: _allOrders
-          .where((o) => o.status == DeliveryOrderStatus.delivered)
-          .fold(0.0, (sum, o) => sum + o.deliveryFee),
-      rating: 4.8,
-      onlineHours: 5,
-      acceptanceRate: 95,
-    );
-  }
-
   Future<void> refreshData() async {
-    logger.info("Refreshing... delivery provider data");
-    await _fetchAndLoadDashboardData();
-    logger.info("finished refreshData");
+    try {
+      logger.info("Refreshing... delivery provider data");
+      await _fetchAndLoadDashboardData();
+      logger.ok("finished refreshData successfully");
 
-    notifyListeners();
+      notifyListeners();
+    } on DioException catch (e) {
+      logger.error("Couldn't fetching dashboard data:\n\n${e.response}");
+    }
   }
 }

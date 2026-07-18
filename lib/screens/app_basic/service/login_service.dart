@@ -16,15 +16,12 @@ class LoginService {
         "role": role,
       };
 
-      logger.info("🚀 LOGIN API START");
-      logger.info("📤 BODY:\n$body");
+      logger.info("🚀 LOGIN API START\n\nBody:\n$body");
 
       final response = await apiClient.dio.post(
         "/api/auth/login/password",
         data: body,
-        options: Options(
-          extra: {"RequireAuth": false, "SkipRefresh": true},
-        ),
+        options: Options(extra: {"RequireAuth": false, "SkipRefresh": true}),
       );
 
       logger.ok("📥 RESPONSE: ${response.data}");
@@ -35,9 +32,7 @@ class LoginService {
         return null;
       }
     } on DioException catch (e) {
-      logger.error("LOGIN ERROR");
-      logger.error("STATUS: ${e.response?.statusCode}");
-      logger.error("DATA: ${e.response?.data}");
+      logger.error("LOGIN ERROR RESPONSE: \n\n${e.response?.data}");
       return null;
     }
   }

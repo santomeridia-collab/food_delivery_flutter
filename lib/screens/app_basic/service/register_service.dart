@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:food_delivery/api/api_client.dart';
 import 'package:food_delivery/api/api_costants.dart';
 import 'package:food_delivery/screens/app_basic/model/register_model.dart';
 import 'package:food_delivery/utils/log.dart';
@@ -26,9 +27,6 @@ class RegisterService {
     required String role,
   }) async {
     try {
-      const baseUrl = ApiConstants.baseUrl;
-      final url = "$baseUrl/api/auth/register";
-
       final body = {
         "name": name,
         "email": email,
@@ -38,19 +36,22 @@ class RegisterService {
       };
 
       logger.info("🚀 ===== REGISTER API START =====");
-      logger.info("📡 URL: $url");
+      logger.info("📡 URL: ${ApiConstants.baseUrl}");
       logger.info("📤 BODY: $body");
 
-      final response = await dio.post(url, data: body);
+      final response = await apiClient.dio.post(
+        "/api/auth/register",
+        data: body,
+        options: Options(extra: {"RequireAuth": false, "SkipRefresh": true}),
+      );
 
-      logger.info("📥 STATUS CODE: ${response.statusCode}");
-      logger.info("📥 RESPONSE DATA: ${response.data}");
-      logger.info("✅ ===== REGISTER API END =====");
+      logger.ok("REGISTER RESPONSE: $response\n\n");
+      logger.info("===== REGISTER API END =====");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return RegisterResponse.fromJson(response.data);
       } else {
-        logger.error("⚠️ Unexpected status code");
+        logger.error("Unexpected status code");
         return null;
       }
     } on DioException catch (e) {
