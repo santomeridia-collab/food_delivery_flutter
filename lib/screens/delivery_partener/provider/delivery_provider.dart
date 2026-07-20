@@ -1,5 +1,6 @@
 import "package:dio/dio.dart";
 import "package:flutter/material.dart";
+import "package:food_delivery/screens/delivery_partener/model/delivery_dashboard_response.dart";
 import "package:google_maps_flutter/google_maps_flutter.dart";
 import "package:food_delivery/api/api_client.dart";
 import "package:food_delivery/utils/log.dart";
@@ -15,9 +16,11 @@ class DeliveryProvider extends ChangeNotifier {
     todayEarnings: 0,
     totalDeliveries: 0,
     totalEarnings: 0,
-    rating: 4.8,
+
+    // we are not recieving rating, Today's onlineHours and acceptanceRate from the backend
+    rating: 0,
     onlineHours: 0,
-    acceptanceRate: 95,
+    acceptanceRate: 0,
   );
 
   List<DeliveryOrder> get newOrders => _newOrders;
@@ -32,7 +35,7 @@ class DeliveryProvider extends ChangeNotifier {
   Future<void> _init() async {
     try {
       logger.info("Fetching and loading delivery dashboard data");
-      await _fetchAndLoadDashboardData();
+      await _fetchAndLoadData();
       logger.ok("Successfully fetched and loading delivery dashboard data");
 
       notifyListeners();
@@ -43,22 +46,46 @@ class DeliveryProvider extends ChangeNotifier {
 
   /// This method fetch's the dashboard data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
   ///
-  /// NOTE: this function does not call notifyListeners(), you have to do that manually
-  Future<void> _fetchAndLoadDashboardData() async {
+  /// NOTE: This function does not call notifyListeners(), you have explicitly call notify_listeners()
+  Future<void> _fetchAndLoadData() async {
     Response response;
     response = await apiClient.dio.get("/api/delivery/dashboard");
     logger.info("/api/delivery/dashboard response:\n\n$response");
 
-    // NOTE: this is just for testing purposes
-    // TODO: create a model DeliveryDashboardResponse for JSON parsing
-    _isOnline = response.data["data"]["isOnline"];
+    try {
+      final responseData = DeliveryDashboardResponse.fromJson(response.data);
+
+      setOnlineStatus(responseData.data.isOnline);
+      _updateStats(responseData);
+    } catch (e) {
+      logger.error(e.toString());
+      throw Error;
+    }
   }
 
-  void setOnlineStatus(bool value) {
-    _isOnline = value;
-    notifyListeners();
+  /// This method takes in the response of /api/delivery/dashboard i.e. DeliveryDashboardResponse and
+  /// updates this DeliveryProvider instance's Delivery stats variable
+  ///
+  /// NOTE: This function does not call notifyListeners(), you have explicitly call notify_listeners()
+  void _updateStats(DeliveryDashboardResponse response) {
+    _stats = DeliveryStats(
+      todayDeliveries: response.data.deliveries.today,
+      todayEarnings: response.data.earnings.today,
+
+      // ================= TODO: get these values from backend (backend does send these values right now) =================
+      rating: 0,
+      acceptanceRate: 0,
+
+      // ================= TODO: this onlineHours should be today's online hours instead server only sends total, week and month's minute/hours =================
+      onlineHours: response.data.onlineHours.totalHours,
+
+      totalDeliveries: response.data.totalDeliveries,
+      totalEarnings: response.data.earnings.total,
+    );
   }
 
+  // =========== TESTING FUNCTIONS ===========
+  //
   // In _loadDataTest method, ensure IDs have sufficient length
   void _loadDataTest() {
     _newOrders = [
@@ -146,6 +173,13 @@ class DeliveryProvider extends ChangeNotifier {
       acceptanceRate: 95,
     );
   }
+  //
+  // =========================================
+
+  void setOnlineStatus(bool value) {
+    _isOnline = value;
+    notifyListeners();
+  }
 
   void acceptOrder(String orderId) {
     final index = _newOrders.indexWhere((o) => o.id == orderId);
@@ -178,6 +212,7 @@ class DeliveryProvider extends ChangeNotifier {
       _activeOrders.insert(0, updatedOrder);
       _allOrders = [..._newOrders, ..._activeOrders];
       _updateStatsTest();
+
       notifyListeners();
     }
   }
@@ -191,6 +226,7 @@ class DeliveryProvider extends ChangeNotifier {
   void rejectOrder(String orderId) {
     _newOrders.removeWhere((o) => o.id == orderId);
     _allOrders = [..._newOrders, ..._activeOrders];
+
     notifyListeners();
   }
 
@@ -237,6 +273,7 @@ class DeliveryProvider extends ChangeNotifier {
 
       _allOrders = [..._newOrders, ..._activeOrders];
       _updateStatsTest();
+
       notifyListeners();
     }
   }
@@ -244,7 +281,7 @@ class DeliveryProvider extends ChangeNotifier {
   Future<void> refreshData() async {
     try {
       logger.info("Refreshing... delivery provider data");
-      await _fetchAndLoadDashboardData();
+      await _fetchAndLoadData();
       logger.ok("finished refreshData successfully");
 
       notifyListeners();
