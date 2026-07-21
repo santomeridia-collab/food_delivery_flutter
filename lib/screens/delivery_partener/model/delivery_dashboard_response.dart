@@ -100,13 +100,17 @@ class DeliveryDashboardEarnings {
 
 class DeliveryDashboardOnlineHours {
   final int totalMinutes;
-  final int totalHours;
+  final double totalHours;
+  final int todayMinutes;
+  final double todayHours;
   final int thisWeekMinutes;
   final int thisMonthMinutes;
 
   DeliveryDashboardOnlineHours._({
     required this.totalMinutes,
     required this.totalHours,
+    required this.todayMinutes,
+    required this.todayHours,
     required this.thisWeekMinutes,
     required this.thisMonthMinutes,
   });
@@ -114,7 +118,9 @@ class DeliveryDashboardOnlineHours {
   factory DeliveryDashboardOnlineHours._fromJson(Map<String, dynamic> json) {
     return DeliveryDashboardOnlineHours._(
       totalMinutes: json["totalMinutes"],
-      totalHours: json["totalHours"],
+      totalHours: (json["totalHours"] as num).toDouble(),
+      todayMinutes: json["todayMinutes"],
+      todayHours: (json["todayHours"] as num).toDouble(),
       thisWeekMinutes: json["thisWeekMinutes"],
       thisMonthMinutes: json["thisMonthMinutes"],
     );

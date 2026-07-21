@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionData {
-  // TODO: FIX BUG user id is never recieved from the backend in any request.
   String? userId;
   String? identifier;
   String? accessToken;

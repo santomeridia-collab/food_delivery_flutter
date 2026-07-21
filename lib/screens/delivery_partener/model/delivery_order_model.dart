@@ -105,7 +105,7 @@ class DeliveryStats {
   final int totalDeliveries;
   final double totalEarnings;
   final double rating;
-  final int onlineHours;
+  final double onlineHours;
   final double acceptanceRate;
 
   DeliveryStats({

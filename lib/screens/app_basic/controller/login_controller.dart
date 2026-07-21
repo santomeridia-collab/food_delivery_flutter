@@ -30,12 +30,11 @@ class LoginController with ChangeNotifier {
         // Save tokens
         try {
           sessionProvider.setSession(
-            // TODO: temporarily setting userId to empty string. BUG: this will break logout as it depends on userId
-            "",
-            identifier,
+            response.data.userId,
+            response.data.identifier,
             response.data.accessToken,
             response.data.refreshToken,
-            role,
+            response.data.role,
           );
 
           logger.ok("Tokens saved successfully");

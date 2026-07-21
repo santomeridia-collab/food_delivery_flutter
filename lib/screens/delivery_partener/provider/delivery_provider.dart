@@ -16,10 +16,10 @@ class DeliveryProvider extends ChangeNotifier {
     todayEarnings: 0,
     totalDeliveries: 0,
     totalEarnings: 0,
+    onlineHours: 0.0,
 
-    // we are not recieving rating, Today's onlineHours and acceptanceRate from the backend
+    // we are not recieving rating and acceptanceRate from the backend
     rating: 0,
-    onlineHours: 0,
     acceptanceRate: 0,
   );
 
@@ -76,11 +76,9 @@ class DeliveryProvider extends ChangeNotifier {
       rating: 0,
       acceptanceRate: 0,
 
-      // ================= TODO: this onlineHours should be today's online hours instead server only sends total, week and month's minute/hours =================
-      onlineHours: response.data.onlineHours.totalHours,
-
       totalDeliveries: response.data.totalDeliveries,
       totalEarnings: response.data.earnings.total,
+      onlineHours: response.data.onlineHours.todayHours,
     );
   }
 
