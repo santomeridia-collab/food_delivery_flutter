@@ -7,13 +7,15 @@ import 'package:food_delivery/utils/json.dart';
 import 'package:food_delivery/utils/log.dart';
 
 class LogoutService {
-  Future<LogoutResponse?> logout({String? refreshToken, String? userId}) async {
+  Future<ApiResponse<LogoutData>?> logout({
+    String? refreshToken,
+    String? userId,
+  }) async {
     try {
       final accessToken = sessionProvider.session.accessToken;
-
       if (accessToken == null || accessToken.isEmpty) {
         logger.error("No access token found");
-        return LogoutResponse(success: false, message: "No access token found");
+        return null;
       }
 
       // Prepare request body
@@ -35,34 +37,19 @@ class LogoutService {
       logger.info("📥 Response Status: ${response.statusCode}");
       logger.info("📥 Response Data: ${prettyJson(response.data)}");
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return LogoutResponse.fromJson(response.data);
-      } else {
-        return LogoutResponse(
-          success: false,
-          message: 'Logout failed with status: ${response.statusCode}',
-        );
-      }
+      return ApiResponse<LogoutData>.fromJson(
+        response.data,
+        LogoutData.fromJson,
+      );
     } on DioException catch (e) {
       logger.error("Dio Error: ${e.message}");
       logger.error("Status Code: ${e.response?.statusCode}");
       logger.error("Response Data: ${prettyJson(e.response?.data)}");
 
-      String errorMessage = 'Network error occurred';
-      if (e.response?.data != null) {
-        try {
-          final errorData = e.response?.data as Map<String, dynamic>;
-          errorMessage = errorData['message'] ?? 'Logout failed';
-        } catch (_) {}
-      }
-
-      return LogoutResponse(success: false, message: errorMessage);
+      return null;
     } catch (e) {
       logger.error("Unknown Error: $e");
-      return LogoutResponse(
-        success: false,
-        message: 'An unexpected error occurred',
-      );
+      return null;
     }
   }
 

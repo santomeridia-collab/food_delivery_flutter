@@ -18,22 +18,25 @@ class RefreshData {
   }
 }
 
-class RefreshResponse {
+class ApiResponse<T> {
   final bool success;
   final String message;
-  final RefreshData data;
+  final T? data;
 
-  RefreshResponse({
+  ApiResponse._({
     required this.success,
     required this.message,
     required this.data,
   });
 
-  factory RefreshResponse.fromJson(Map<String, dynamic> json) {
-    return RefreshResponse(
+  factory ApiResponse.fromJson(
+    Map<String, dynamic> json,
+    T Function(Map<String, dynamic> json) fromJsonT,
+  ) {
+    return ApiResponse._(
       success: json["success"],
       message: json["message"],
-      data: RefreshData.fromJson(json["data"]),
+      data: fromJsonT(json["data"]),
     );
   }
 }
@@ -137,8 +140,14 @@ class ApiClient {
         "/api/auth/refresh",
         data: {"refreshToken": refreshToken},
       );
-      final parsedResponse = RefreshResponse.fromJson(response.data);
-      final newAccessToken = parsedResponse.data.accessToken;
+      final parsedResponse = ApiResponse<RefreshData>.fromJson(
+        response.data,
+        RefreshData.fromJson,
+      );
+      assert(
+        parsedResponse.data != null,
+      ); // on successful response data shouldn't be null
+      final newAccessToken = parsedResponse.data!.accessToken;
 
       return newAccessToken;
     } catch (e) {

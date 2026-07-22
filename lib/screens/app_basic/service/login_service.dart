@@ -5,7 +5,7 @@ import 'package:food_delivery/utils/json.dart';
 import 'package:food_delivery/utils/log.dart';
 
 class LoginService {
-  Future<LoginResponse?> loginUser({
+  Future<ApiResponse<LoginData>?> loginUser({
     required String identifier,
     required String password,
     required String role,
@@ -28,7 +28,10 @@ class LoginService {
       logger.ok("📥 RESPONSE:\n${prettyJson(response)}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return LoginResponse.fromJson(response.data);
+        return ApiResponse<LoginData>.fromJson(
+          response.data,
+          LoginData.fromJson,
+        );
       } else {
         return null;
       }

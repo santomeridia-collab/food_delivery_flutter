@@ -4,7 +4,6 @@ import 'package:food_delivery/screens/restaurant_owner/add_edit_item_screen.dart
 import 'package:food_delivery/screens/restaurant_owner/category_management_screen.dart';
 import 'package:food_delivery/screens/restaurant_owner/widget/menu_item_card.dart';
 import 'package:provider/provider.dart';
-import 'package:food_delivery/screens/restaurant_owner/model/menu_item_model.dart';
 import 'package:food_delivery/screens/restaurant_owner/provider/menu_provider.dart';
 import 'package:food_delivery/screens/customer/utils/app_theme.dart';
 

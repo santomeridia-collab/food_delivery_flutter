@@ -174,8 +174,8 @@ class _DashboardContent extends StatelessWidget {
                     const Text('Status', style: TextStyle(fontSize: 14)),
                     Switch(
                       value: isOnline,
-                      onChanged: (value) {
-                        deliveryProvider.setOnlineStatus(value);
+                      onChanged: (value) async {
+                        await deliveryProvider.setOnlineStatus(value);
                       },
                       activeThumbColor: Colors.green,
                     ),

@@ -1,23 +1,3 @@
-class DeliveryDashboardResponse {
-  final bool success;
-  final String message;
-  final DeliveryDashboardData data;
-
-  DeliveryDashboardResponse._({
-    required this.success,
-    required this.message,
-    required this.data,
-  });
-
-  factory DeliveryDashboardResponse.fromJson(Map<String, dynamic> json) {
-    return DeliveryDashboardResponse._(
-      success: json["success"],
-      message: json["message"],
-      data: DeliveryDashboardData._fromJson(json["data"]),
-    );
-  }
-}
-
 class DeliveryDashboardData {
   final bool isOnline;
   final int totalDeliveries;
@@ -35,7 +15,7 @@ class DeliveryDashboardData {
     required this.activeDelivery,
   });
 
-  factory DeliveryDashboardData._fromJson(Map<String, dynamic> json) {
+  factory DeliveryDashboardData.fromJson(Map<String, dynamic> json) {
     return DeliveryDashboardData._(
       isOnline: json["isOnline"],
       totalDeliveries: json["totalDeliveries"],

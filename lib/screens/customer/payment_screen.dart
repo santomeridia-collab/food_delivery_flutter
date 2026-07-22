@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'models/address_model.dart';
-import 'models/cart_model.dart';
 import 'providers/cart_provider.dart';
 import 'providers/order_provider.dart';
 import 'utils/app_theme.dart';

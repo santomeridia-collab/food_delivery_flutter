@@ -1,6 +1,7 @@
 import "package:dio/dio.dart";
 import "package:flutter/material.dart";
-import "package:food_delivery/screens/delivery_partener/model/delivery_dashboard_response.dart";
+import "package:food_delivery/global_providers/session_provider.dart";
+import "package:food_delivery/screens/delivery_partener/model/delivery_dashboard_data.dart";
 import "package:food_delivery/utils/json.dart";
 import "package:google_maps_flutter/google_maps_flutter.dart";
 import "package:food_delivery/api/api_client.dart";
@@ -59,11 +60,15 @@ class DeliveryProvider extends ChangeNotifier {
         "/api/delivery/dashboard response:\n${prettyJson(deliveryResponse)}",
       );
 
-      final deliveryResponseData = DeliveryDashboardResponse.fromJson(
+      final deliveryResponseData = ApiResponse<DeliveryDashboardData>.fromJson(
         deliveryResponse.data,
+        DeliveryDashboardData.fromJson,
       );
-      setOnlineStatus(deliveryResponseData.data.isOnline);
-      _updateStats(deliveryResponseData);
+      // on success data shouldn't be null
+      assert(deliveryResponseData.data != null);
+
+      setOnlineStatus(deliveryResponseData.data!.isOnline);
+      _updateStats(deliveryResponseData.data!);
     } catch (e) {
       logger.error(e.toString());
       throw Error;
@@ -74,18 +79,18 @@ class DeliveryProvider extends ChangeNotifier {
   /// updates this DeliveryProvider instance's Delivery stats variable
   ///
   /// NOTE: This function does not call notifyListeners(), you have explicitly call notify_listeners()
-  void _updateStats(DeliveryDashboardResponse response) {
+  void _updateStats(DeliveryDashboardData data) {
     _stats = DeliveryStats(
-      todayDeliveries: response.data.deliveries.today,
-      todayEarnings: response.data.earnings.today,
+      todayDeliveries: data.deliveries.today,
+      todayEarnings: data.earnings.today,
 
       // ================= TODO: get these values from backend (backend does send these values right now) =================
       rating: 0,
       acceptanceRate: 0,
 
-      totalDeliveries: response.data.totalDeliveries,
-      totalEarnings: response.data.earnings.total,
-      onlineHours: response.data.onlineHours.todayHours,
+      totalDeliveries: data.totalDeliveries,
+      totalEarnings: data.earnings.total,
+      onlineHours: data.onlineHours.todayHours,
     );
   }
 
@@ -181,8 +186,16 @@ class DeliveryProvider extends ChangeNotifier {
   //
   // =========================================
 
-  void setOnlineStatus(bool value) {
+  Future<void> setOnlineStatus(bool value) async {
     _isOnline = value;
+
+    // userId would only be null if user is logged out which is not possible as login check is done on splash screen
+    assert(sessionProvider.session.userId != null);
+    final response = await apiClient.dio.post(
+      "/api/delivery/online",
+      data: {"userId": sessionProvider.session.userId},
+    );
+
     notifyListeners();
   }
 

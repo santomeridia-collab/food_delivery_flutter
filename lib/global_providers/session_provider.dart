@@ -12,10 +12,11 @@ class SessionData {
   SessionData._();
 
   bool get isLoggedIn =>
+      userId != null &&
+      identifier != null &&
       accessToken != null &&
       refreshToken != null &&
-      role != null &&
-      identifier != null;
+      role != null;
 }
 
 class SessionProvider extends ChangeNotifier {

@@ -1,7 +1,6 @@
 // lib/screens/app_basic/controller/logout_controller.dart
 import 'package:flutter/material.dart';
 import 'package:food_delivery/global_providers/session_provider.dart';
-import 'package:food_delivery/screens/app_basic/model/logout_model.dart';
 import 'package:food_delivery/screens/app_basic/service/logout_service.dart';
 import 'package:food_delivery/utils/log.dart';
 
@@ -9,7 +8,6 @@ class LogoutController with ChangeNotifier {
   final LogoutService _logoutService = LogoutService();
 
   bool isLoading = false;
-  LogoutResponse? logoutResponse;
   String? errorMessage;
 
   Future<bool> performLogout() async {
@@ -29,8 +27,6 @@ class LogoutController with ChangeNotifier {
       );
 
       if (response != null && response.success) {
-        logoutResponse = response;
-
         // Clear local data after successful logout
         await _logoutService.clearLocalData();
 
