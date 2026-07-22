@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:food_delivery/api/api_costants.dart';
 import 'package:food_delivery/global_providers/session_provider.dart';
+import 'package:food_delivery/utils/json.dart';
 import 'package:food_delivery/utils/log.dart';
 
 class RefreshData {
@@ -74,7 +75,7 @@ class ApiClient {
           // Unauthorized error the access token is either expired or invalid
           if (e.response?.statusCode == 401) {
             logger.error(
-              "401 Unauthorized access status code, recieved \n\n${e.response}",
+              "401 Unauthorized access status code, recieved \n${prettyJson(e.response)}",
             );
             final skipRefresh = e.requestOptions.extra["SkipRefresh"] ?? false;
             if (skipRefresh) {

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:food_delivery/api/api_client.dart';
 import 'package:food_delivery/screens/app_basic/model/login_model.dart';
+import 'package:food_delivery/utils/json.dart';
 import 'package:food_delivery/utils/log.dart';
 
 class LoginService {
@@ -16,7 +17,7 @@ class LoginService {
         "role": role,
       };
 
-      logger.info("🚀 LOGIN API START\n\nBody:\n$body");
+      logger.info("LOGIN API START\n\nBody:\n${prettyJson(body)}");
 
       final response = await apiClient.dio.post(
         "/api/auth/login/password",
@@ -24,7 +25,7 @@ class LoginService {
         options: Options(extra: {"RequireAuth": false, "SkipRefresh": true}),
       );
 
-      logger.ok("📥 RESPONSE: ${response.data}");
+      logger.ok("📥 RESPONSE:\n${prettyJson(response)}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return LoginResponse.fromJson(response.data);
@@ -32,7 +33,7 @@ class LoginService {
         return null;
       }
     } on DioException catch (e) {
-      logger.error("LOGIN ERROR RESPONSE: \n\n${e.response?.data}");
+      logger.error("LOGIN ERROR RESPONSE: \n\n${prettyJson(e.response?.data)}");
       return null;
     }
   }

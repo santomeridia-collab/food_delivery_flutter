@@ -2,23 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:food_delivery/api/api_client.dart';
 import 'package:food_delivery/api/api_costants.dart';
 import 'package:food_delivery/screens/app_basic/model/register_model.dart';
+import 'package:food_delivery/utils/json.dart';
 import 'package:food_delivery/utils/log.dart';
 
 class RegisterService {
-  final Dio dio =
-      Dio()
-        ..interceptors.add(
-          LogInterceptor(
-            request: true,
-            requestHeader: true,
-            requestBody: true,
-            responseHeader: true,
-            responseBody: true,
-            error: true,
-            logPrint: (obj) => logger.info(obj.toString()),
-          ),
-        );
-
   Future<RegisterResponse?> registerUser({
     required String name,
     required String email,
@@ -37,7 +24,7 @@ class RegisterService {
 
       logger.info("🚀 ===== REGISTER API START =====");
       logger.info("📡 URL: ${ApiConstants.baseUrl}");
-      logger.info("📤 BODY: $body");
+      logger.info("📤 BODY: ${prettyJson(body)}");
 
       final response = await apiClient.dio.post(
         "/api/auth/register",
@@ -62,7 +49,7 @@ class RegisterService {
 
       if (e.response != null) {
         logger.error("STATUS CODE: ${e.response?.statusCode}");
-        logger.error("RESPONSE DATA: ${e.response?.data}");
+        logger.error("RESPONSE DATA: ${prettyJson(e.response?.data)}");
         logger.error("HEADERS: ${e.response?.headers}");
       } else {
         logger.error("NO RESPONSE FROM SERVER");

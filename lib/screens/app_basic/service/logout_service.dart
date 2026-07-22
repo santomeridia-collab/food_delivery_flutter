@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:food_delivery/api/api_client.dart';
 import 'package:food_delivery/global_providers/session_provider.dart';
 import 'package:food_delivery/screens/app_basic/model/logout_model.dart';
+import 'package:food_delivery/utils/json.dart';
 import 'package:food_delivery/utils/log.dart';
 
 class LogoutService {
@@ -23,7 +24,7 @@ class LogoutService {
 
       logger.info("🚀 Logout API Call");
       logger.info("📤 Headers: Authorization: Bearer $accessToken");
-      logger.info("📤 Body: ${request.toJson()}");
+      logger.info("📤 Body: ${prettyJson(request)}");
 
       final response = await apiClient.dio.post(
         "/api/auth/logout",
@@ -32,7 +33,7 @@ class LogoutService {
       );
 
       logger.info("📥 Response Status: ${response.statusCode}");
-      logger.info("📥 Response Data: ${response.data}");
+      logger.info("📥 Response Data: ${prettyJson(response.data)}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return LogoutResponse.fromJson(response.data);
@@ -45,7 +46,7 @@ class LogoutService {
     } on DioException catch (e) {
       logger.error("Dio Error: ${e.message}");
       logger.error("Status Code: ${e.response?.statusCode}");
-      logger.error("Response Data: ${e.response?.data}");
+      logger.error("Response Data: ${prettyJson(e.response?.data)}");
 
       String errorMessage = 'Network error occurred';
       if (e.response?.data != null) {

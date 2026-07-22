@@ -1,6 +1,7 @@
 import "package:dio/dio.dart";
 import "package:flutter/material.dart";
 import "package:food_delivery/screens/delivery_partener/model/delivery_dashboard_response.dart";
+import "package:food_delivery/utils/json.dart";
 import "package:google_maps_flutter/google_maps_flutter.dart";
 import "package:food_delivery/api/api_client.dart";
 import "package:food_delivery/utils/log.dart";
@@ -44,19 +45,25 @@ class DeliveryProvider extends ChangeNotifier {
     }
   }
 
-  /// This method fetch's the dashboard data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
+  /// This method fetch's the all delivery provider data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
   ///
   /// NOTE: This function does not call notifyListeners(), you have explicitly call notify_listeners()
   Future<void> _fetchAndLoadData() async {
-    Response response;
-    response = await apiClient.dio.get("/api/delivery/dashboard");
-    logger.info("/api/delivery/dashboard response:\n\n$response");
-
     try {
-      final responseData = DeliveryDashboardResponse.fromJson(response.data);
+      final deliveryResponse = await apiClient.dio.get(
+        "/api/delivery/dashboard",
+      );
+      // final ordersResponse = await apiClient.dio.get("/api/delivery/orders/available");
 
-      setOnlineStatus(responseData.data.isOnline);
-      _updateStats(responseData);
+      logger.info(
+        "/api/delivery/dashboard response:\n${prettyJson(deliveryResponse)}",
+      );
+
+      final deliveryResponseData = DeliveryDashboardResponse.fromJson(
+        deliveryResponse.data,
+      );
+      setOnlineStatus(deliveryResponseData.data.isOnline);
+      _updateStats(deliveryResponseData);
     } catch (e) {
       logger.error(e.toString());
       throw Error;
@@ -284,7 +291,9 @@ class DeliveryProvider extends ChangeNotifier {
 
       notifyListeners();
     } on DioException catch (e) {
-      logger.error("Couldn't fetching dashboard data:\n\n${e.response}");
+      logger.error(
+        "Couldn't fetching dashboard data:\n\n${prettyJson(e.response)}",
+      );
     }
   }
 }
