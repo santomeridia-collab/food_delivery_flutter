@@ -151,6 +151,7 @@ class ApiClient {
 
       return newAccessToken;
     } catch (e) {
+      logger.error("catch exception in refreshAccessToken: $e");
       return null;
     }
   }

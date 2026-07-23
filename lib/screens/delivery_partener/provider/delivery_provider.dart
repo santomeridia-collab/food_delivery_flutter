@@ -67,7 +67,7 @@ class DeliveryProvider extends ChangeNotifier {
       // on success data shouldn't be null
       assert(deliveryResponseData.data != null);
 
-      setOnlineStatus(deliveryResponseData.data!.isOnline);
+      _isOnline = deliveryResponseData.data!.isOnline;
       _updateStats(deliveryResponseData.data!);
     } catch (e) {
       logger.error(e.toString());
@@ -191,10 +191,26 @@ class DeliveryProvider extends ChangeNotifier {
 
     // userId would only be null if user is logged out which is not possible as login check is done on splash screen
     assert(sessionProvider.session.userId != null);
-    final response = await apiClient.dio.post(
-      "/api/delivery/online",
-      data: {"userId": sessionProvider.session.userId},
-    );
+
+    // go online
+    if (value == true) {
+      try {
+        final response = await apiClient.dio.post("/api/delivery/online");
+        logger.ok("Go online successful:\n${prettyJson(response)}");
+      } catch (e) {
+        logger.error("Couldn't go online:\n${prettyJson(e)}");
+      }
+    }
+
+    // go offline
+    if (value == false) {
+      try {
+        final response = await apiClient.dio.post("/api/delivery/offline");
+        logger.ok("Go offline successful:\n${prettyJson(response)}");
+      } catch (e) {
+        logger.error("Couldn't go offline:\n${prettyJson(e)}");
+      }
+    }
 
     notifyListeners();
   }
