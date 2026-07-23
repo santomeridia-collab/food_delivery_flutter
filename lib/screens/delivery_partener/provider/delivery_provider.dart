@@ -1,5 +1,8 @@
 import "package:dio/dio.dart";
 import "package:flutter/material.dart";
+import "package:food_delivery/global_providers/session_provider.dart";
+import "package:food_delivery/screens/delivery_partener/model/delivery_dashboard_data.dart";
+import "package:food_delivery/utils/json.dart";
 import "package:google_maps_flutter/google_maps_flutter.dart";
 import "package:food_delivery/api/api_client.dart";
 import "package:food_delivery/utils/log.dart";
@@ -15,9 +18,11 @@ class DeliveryProvider extends ChangeNotifier {
     todayEarnings: 0,
     totalDeliveries: 0,
     totalEarnings: 0,
-    rating: 4.8,
-    onlineHours: 0,
-    acceptanceRate: 95,
+    onlineHours: 0.0,
+
+    // we are not recieving rating and acceptanceRate from the backend
+    rating: 0,
+    acceptanceRate: 0,
   );
 
   List<DeliveryOrder> get newOrders => _newOrders;
@@ -32,7 +37,7 @@ class DeliveryProvider extends ChangeNotifier {
   Future<void> _init() async {
     try {
       logger.info("Fetching and loading delivery dashboard data");
-      await _fetchAndLoadDashboardData();
+      await _fetchAndLoadData();
       logger.ok("Successfully fetched and loading delivery dashboard data");
 
       notifyListeners();
@@ -41,24 +46,57 @@ class DeliveryProvider extends ChangeNotifier {
     }
   }
 
-  /// This method fetch's the dashboard data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
+  /// This method fetch's the all delivery provider data from {api_url}/api/delivery/dashboard route and update the values for this DeliveryProvider instance
   ///
-  /// NOTE: this function does not call notifyListeners(), you have to do that manually
-  Future<void> _fetchAndLoadDashboardData() async {
-    Response response;
-    response = await apiClient.dio.get("/api/delivery/dashboard");
-    logger.info("/api/delivery/dashboard response:\n\n$response");
+  /// NOTE: This function does not call notifyListeners(), you have explicitly call notify_listeners()
+  Future<void> _fetchAndLoadData() async {
+    try {
+      final deliveryResponse = await apiClient.dio.get(
+        "/api/delivery/dashboard",
+      );
+      final ordersResponse = await apiClient.dio.get(
+        "/api/delivery/orders/available",
+      );
 
-    // NOTE: this is just for testing purposes
-    // TODO: create a model DeliveryDashboardResponse for JSON parsing
-    _isOnline = response.data["data"]["isOnline"];
+      logger.info( "/api/delivery/dashboard response:\n${prettyJson(deliveryResponse)}");
+      logger.info("/api/delivery/orders:\n${prettyJson(ordersResponse)}");
+
+      final deliveryResponseData = ApiResponse<DeliveryDashboardData>.fromJson(
+        deliveryResponse.data,
+        DeliveryDashboardData.fromJson,
+      );
+      // on success data shouldn't be null
+      assert(deliveryResponseData.data != null);
+
+      _isOnline = deliveryResponseData.data!.isOnline;
+      _updateStats(deliveryResponseData.data!);
+    } catch (e) {
+      logger.error(e.toString());
+      throw Error;
+    }
   }
 
-  void setOnlineStatus(bool value) {
-    _isOnline = value;
-    notifyListeners();
+  /// This method takes in the response of /api/delivery/dashboard i.e. DeliveryDashboardResponse and
+  /// updates this DeliveryProvider instance's Delivery stats variable
+  ///
+  /// NOTE: This function does not call notifyListeners(), you have explicitly call notify_listeners()
+  void _updateStats(DeliveryDashboardData data) {
+    _stats = DeliveryStats(
+      todayDeliveries: data.deliveries.today,
+      todayEarnings: data.earnings.today,
+
+      // ================= TODO: get these values from backend (backend does send these values right now) =================
+      rating: 0,
+      acceptanceRate: 0,
+
+      totalDeliveries: data.totalDeliveries,
+      totalEarnings: data.earnings.total,
+      onlineHours: data.onlineHours.todayHours,
+    );
   }
 
+  // =========== TESTING FUNCTIONS ===========
+  //
   // In _loadDataTest method, ensure IDs have sufficient length
   void _loadDataTest() {
     _newOrders = [
@@ -146,6 +184,37 @@ class DeliveryProvider extends ChangeNotifier {
       acceptanceRate: 95,
     );
   }
+  //
+  // =========================================
+
+  Future<void> setOnlineStatus(bool value) async {
+    _isOnline = value;
+
+    // userId would only be null if user is logged out which is not possible as login check is done on splash screen
+    assert(sessionProvider.session.userId != null);
+
+    // go online
+    if (value == true) {
+      try {
+        final response = await apiClient.dio.post("/api/delivery/online");
+        logger.ok("Go online successful:\n${prettyJson(response)}");
+      } catch (e) {
+        logger.error("Couldn't go online:\n${prettyJson(e)}");
+      }
+    }
+
+    // go offline
+    if (value == false) {
+      try {
+        final response = await apiClient.dio.post("/api/delivery/offline");
+        logger.ok("Go offline successful:\n${prettyJson(response)}");
+      } catch (e) {
+        logger.error("Couldn't go offline:\n${prettyJson(e)}");
+      }
+    }
+
+    notifyListeners();
+  }
 
   void acceptOrder(String orderId) {
     final index = _newOrders.indexWhere((o) => o.id == orderId);
@@ -178,6 +247,7 @@ class DeliveryProvider extends ChangeNotifier {
       _activeOrders.insert(0, updatedOrder);
       _allOrders = [..._newOrders, ..._activeOrders];
       _updateStatsTest();
+
       notifyListeners();
     }
   }
@@ -191,6 +261,7 @@ class DeliveryProvider extends ChangeNotifier {
   void rejectOrder(String orderId) {
     _newOrders.removeWhere((o) => o.id == orderId);
     _allOrders = [..._newOrders, ..._activeOrders];
+
     notifyListeners();
   }
 
@@ -237,6 +308,7 @@ class DeliveryProvider extends ChangeNotifier {
 
       _allOrders = [..._newOrders, ..._activeOrders];
       _updateStatsTest();
+
       notifyListeners();
     }
   }
@@ -244,12 +316,14 @@ class DeliveryProvider extends ChangeNotifier {
   Future<void> refreshData() async {
     try {
       logger.info("Refreshing... delivery provider data");
-      await _fetchAndLoadDashboardData();
+      await _fetchAndLoadData();
       logger.ok("finished refreshData successfully");
 
       notifyListeners();
     } on DioException catch (e) {
-      logger.error("Couldn't fetching dashboard data:\n\n${e.response}");
+      logger.error(
+        "Couldn't fetching dashboard data:\n\n${prettyJson(e.response)}",
+      );
     }
   }
 }

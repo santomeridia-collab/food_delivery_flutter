@@ -26,16 +26,18 @@ class LoginController with ChangeNotifier {
         role: role,
       );
 
-      if (response != null && response.success) {
+      if (response != null && response.success && response.data != null) {
         // Save tokens
         try {
+          assert(
+            response.data != null,
+          ); // response data should never be null for a successful response
           sessionProvider.setSession(
-            // TODO: temporarily setting userId to empty string. BUG: this will break logout as it depends on userId
-            "",
-            identifier,
-            response.data.accessToken,
-            response.data.refreshToken,
-            role,
+            response.data!.userId,
+            response.data!.identifier,
+            response.data!.accessToken,
+            response.data!.refreshToken,
+            response.data!.role,
           );
 
           logger.ok("Tokens saved successfully");

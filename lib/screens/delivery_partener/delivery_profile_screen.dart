@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:food_delivery/screens/customer/utils/app_theme.dart';
 import 'package:food_delivery/screens/delivery_partener/provider/delivery_profile_provider.dart';
-import 'package:food_delivery/utils/log.dart';
 import 'package:provider/provider.dart';
 import 'delivery_earnings_screen.dart';
 import 'vehicle_details_screen.dart';

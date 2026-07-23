@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionData {
-  // TODO: FIX BUG user id is never recieved from the backend in any request.
   String? userId;
   String? identifier;
   String? accessToken;
@@ -13,10 +12,11 @@ class SessionData {
   SessionData._();
 
   bool get isLoggedIn =>
+      userId != null &&
+      identifier != null &&
       accessToken != null &&
       refreshToken != null &&
-      role != null &&
-      identifier != null;
+      role != null;
 }
 
 class SessionProvider extends ChangeNotifier {

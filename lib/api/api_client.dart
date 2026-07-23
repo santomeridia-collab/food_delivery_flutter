@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:food_delivery/api/api_costants.dart';
 import 'package:food_delivery/global_providers/session_provider.dart';
+import 'package:food_delivery/utils/json.dart';
 import 'package:food_delivery/utils/log.dart';
 
 class RefreshData {
@@ -17,22 +18,25 @@ class RefreshData {
   }
 }
 
-class RefreshResponse {
+class ApiResponse<T> {
   final bool success;
   final String message;
-  final RefreshData data;
+  final T? data;
 
-  RefreshResponse({
+  ApiResponse._({
     required this.success,
     required this.message,
     required this.data,
   });
 
-  factory RefreshResponse.fromJson(Map<String, dynamic> json) {
-    return RefreshResponse(
+  factory ApiResponse.fromJson(
+    Map<String, dynamic> json,
+    T Function(Map<String, dynamic> json) fromJsonT,
+  ) {
+    return ApiResponse._(
       success: json["success"],
       message: json["message"],
-      data: RefreshData.fromJson(json["data"]),
+      data: fromJsonT(json["data"]),
     );
   }
 }
@@ -74,7 +78,7 @@ class ApiClient {
           // Unauthorized error the access token is either expired or invalid
           if (e.response?.statusCode == 401) {
             logger.error(
-              "401 Unauthorized access status code, recieved \n\n${e.response}",
+              "401 Unauthorized access status code, recieved \n${prettyJson(e.response)}",
             );
             final skipRefresh = e.requestOptions.extra["SkipRefresh"] ?? false;
             if (skipRefresh) {
@@ -136,11 +140,21 @@ class ApiClient {
         "/api/auth/refresh",
         data: {"refreshToken": refreshToken},
       );
-      final parsedResponse = RefreshResponse.fromJson(response.data);
-      final newAccessToken = parsedResponse.data.accessToken;
+      final parsedResponse = ApiResponse<RefreshData>.fromJson(
+        response.data,
+        RefreshData.fromJson,
+      );
+      assert(
+        parsedResponse.data != null,
+      ); // on successful response data shouldn't be null
+      final newAccessToken = parsedResponse.data!.accessToken;
 
       return newAccessToken;
+    } on DioException catch (e) {
+      logger.error("catch Dio exception in refreshAccessToken: ${prettyJson(e.response)}");
+      return null;
     } catch (e) {
+      logger.error("catch Unknown exception in refreshAccessToken: $e");
       return null;
     }
   }

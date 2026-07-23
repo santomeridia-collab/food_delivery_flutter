@@ -1,10 +1,10 @@
 import 'dart:developer';
 
 enum LogLevel {
-  INFO(500),
-  FINE(800),
-  WARNING(900),
-  ERROR(1000);
+  info(500),
+  fine(800),
+  warning(900),
+  error(1000);
 
   final int value;
 
@@ -26,49 +26,49 @@ class Logger {
     final seconds = now.second.toString().padLeft(2, "0");
     final period = now.hour >= 12 ? "PM" : "AM";
 
-    // bold and grey ASCAII
+    // bold and grey ASCII
     return "\x1b[1;38;2;185;185;185m[${hour.toString().padLeft(2, '0')}:$minute:$seconds $period]\x1b[0m";
   }
 
   void ok(String msg, {bool enableStackTrace = false}) {
-    // pastel green ASCAII
+    // pastel green ASCII
     log(
-      "${_getAscaiiFormattedTimestamp()}   \x1b[1;38;2;119;221;119m[OK]\x1b[0m : \x1b[1;37m\t\t$msg\n\x1b[0m\n",
+      "${_getAscaiiFormattedTimestamp()}   \x1b[1;38;2;119;221;119m[OK]\x1b[0m : $msg\n",
       name: _appName,
-      level: LogLevel.FINE.value,
+      level: LogLevel.fine.value,
       stackTrace: enableStackTrace ? StackTrace.current : null,
       error: "",
     );
   }
 
   void info(String msg, {bool enableStackTrace = false}) {
-    // pastel off-white ASCAII
+    // pastel off-white ASCII
     log(
-      "${_getAscaiiFormattedTimestamp()}   \x1b[1;38;2;167;199;231m[INFO]\x1b[0m : \x1b[1;37m\t\t$msg\n\x1b[0m\n",
+      "${_getAscaiiFormattedTimestamp()}   \x1b[1;38;2;167;199;231m[INFO]\x1b[0m : $msg\n",
       name: _appName,
-      level: LogLevel.INFO.value,
+      level: LogLevel.info.value,
       stackTrace: enableStackTrace ? StackTrace.current : null,
       error: "",
     );
   }
 
   void warn(String msg, {bool enableStackTrace = true}) {
-    // pastel orange ASCAII
+    // pastel orange ASCII
     log(
-      "${_getAscaiiFormattedTimestamp()}   \x1b[1;38;2;255;179;71m[WARN]\x1b[0m : \x1b[1;37m\t\t$msg\n\x1b[0m\n",
+      "${_getAscaiiFormattedTimestamp()}   \x1b[1;38;2;255;179;71m[WARN]\x1b[0m : $msg\n",
       name: _appName,
-      level: LogLevel.WARNING.value,
+      level: LogLevel.warning.value,
       stackTrace: enableStackTrace ? StackTrace.current : null,
       error: "",
     );
   }
 
   void error(String msg, {bool enableStackTrace = true}) {
-    // pastel red ASCAII
+    // pastel red ASCII
     log(
-      "${_getAscaiiFormattedTimestamp()}   \x1b[1;38;2;255;105;97m[ERROR]\x1b[0m : \x1b[1;37m\t\t$msg\n\x1b[0m\n",
+      "${_getAscaiiFormattedTimestamp()}   \x1b[1;38;2;255;105;97m[ERROR]\x1b[0m : $msg\n",
       name: _appName,
-      level: LogLevel.ERROR.value,
+      level: LogLevel.error.value,
       stackTrace: enableStackTrace ? StackTrace.current : null,
       error: "",
     );
