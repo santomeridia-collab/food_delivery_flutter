@@ -150,8 +150,11 @@ class ApiClient {
       final newAccessToken = parsedResponse.data!.accessToken;
 
       return newAccessToken;
+    } on DioException catch (e) {
+      logger.error("catch Dio exception in refreshAccessToken: ${prettyJson(e.response)}");
+      return null;
     } catch (e) {
-      logger.error("catch exception in refreshAccessToken: $e");
+      logger.error("catch Unknown exception in refreshAccessToken: $e");
       return null;
     }
   }

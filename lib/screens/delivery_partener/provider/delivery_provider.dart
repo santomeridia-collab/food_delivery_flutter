@@ -54,11 +54,12 @@ class DeliveryProvider extends ChangeNotifier {
       final deliveryResponse = await apiClient.dio.get(
         "/api/delivery/dashboard",
       );
-      // final ordersResponse = await apiClient.dio.get("/api/delivery/orders/available");
-
-      logger.info(
-        "/api/delivery/dashboard response:\n${prettyJson(deliveryResponse)}",
+      final ordersResponse = await apiClient.dio.get(
+        "/api/delivery/orders/available",
       );
+
+      logger.info( "/api/delivery/dashboard response:\n${prettyJson(deliveryResponse)}");
+      logger.info("/api/delivery/orders:\n${prettyJson(ordersResponse)}");
 
       final deliveryResponseData = ApiResponse<DeliveryDashboardData>.fromJson(
         deliveryResponse.data,
